@@ -1,5 +1,9 @@
 package ece454p1;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Peers is a dumb container to hold the peers; the number of peers is fixed,
  * but needs to be set up when a peer starts up; feel free to use some other
@@ -7,7 +11,8 @@ package ece454p1;
  * peersFile, since otherwise you have no way of having a calling entity tell
  * your code what the peers are in the system.
  **/
-public abstract class Peers {
+public class PeersList {
+    private static List<PeerDefinition> peers;
 
 	/**
 	 * The peersFile is the name of a file that contains 
@@ -22,13 +27,30 @@ public abstract class Peers {
 	 * @param peersFile
 	 * @return
 	 */
-	public abstract int initialize(String peersFile);
+	public static int initialize(String peersFile) {
+        peers = new ArrayList<PeerDefinition>();
 
-	public abstract Peer getPeer(int i);
+        BufferedReader fileReader;
+        String line;
 
-	//TODO You will likely want to add methods such as visit()
+        try {
+            fileReader = new BufferedReader(new FileReader(peersFile));
 
-	private int numPeers;
-	private Peer[] peers;
+            while((line = fileReader.readLine()) != null) {
+                peers.add(PeerDefinition.fromString(line));
+            }
 
+            fileReader.close();
+        } catch (IOException e) {
+            return ReturnCodes.PEERS_FILE_ERR;
+        } catch (PeerDefinition.MalformedPeerDefinitionException e) {
+            return ReturnCodes.PEERS_FILE_ERR;
+        }
+
+        return ReturnCodes.OK;
+    }
+
+    public static List<PeerDefinition> getPeers() {
+        return peers;
+    }
 }
