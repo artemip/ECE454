@@ -1,16 +1,13 @@
 package ece454p1;
 
-import java.io.*;
+import ece454p1.PeerDefinition.MalformedPeerDefinitionException;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Peers is a dumb container to hold the peers; the number of peers is fixed,
- * but needs to be set up when a peer starts up; feel free to use some other
- * container class, but that class must have a method that allows it to read the
- * peersFile, since otherwise you have no way of having a calling entity tell
- * your code what the peers are in the system.
- **/
 public class PeersList {
     private static List<PeerDefinition> peers;
 
@@ -43,7 +40,7 @@ public class PeersList {
             fileReader.close();
         } catch (IOException e) {
             return ReturnCodes.PEERS_FILE_ERR;
-        } catch (PeerDefinition.MalformedPeerDefinitionException e) {
+        } catch (MalformedPeerDefinitionException e) {
             return ReturnCodes.PEERS_FILE_ERR;
         }
 
