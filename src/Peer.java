@@ -1,7 +1,5 @@
 package ece454p1;
 
-//TODO: can we do without a programming API? Can we use socket message-passing exclusively?
-
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -43,7 +41,7 @@ public class Peer {
 
         @Override
         public void run() {
-            
+
             //TODO: Implement communication protocol (recipient-side) here
         }
     }

@@ -15,5 +15,7 @@ public class ece454p1 {
         } catch (IOException e) {
             System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
         }
+
+        //TODO: Commandline interface
     }
 }
