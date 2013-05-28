@@ -3,6 +3,7 @@ package ece454p1;
 import ece454p1.PeerDefinition.MalformedPeerDefinitionException;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ public class PeersList {
         String line;
 
         try {
+            if(!(new File(peersFile).exists()))
+                return ReturnCodes.PEERS_FILE_NOT_FOUND_ERR;
+
             fileReader = new BufferedReader(new FileReader(peersFile));
 
             while((line = fileReader.readLine()) != null) {
