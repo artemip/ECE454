@@ -1,9 +1,14 @@
 package ece454p1;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChunkSender extends Thread {
 
@@ -16,20 +21,12 @@ public class ChunkSender extends Thread {
             this.recipient = recipient;
         }
 
-        public ChunkMessage(Chunk chunk) {
-            this.chunk = chunk;
-        }
-
         public Chunk getChunk() {
             return chunk;
         }
 
         public PeerDefinition getRecipient() {
             return recipient;
-        }
-
-        public boolean isBroadcast() {
-            return recipient == null;
         }
     }
 
@@ -42,7 +39,45 @@ public class ChunkSender extends Thread {
         }
         @Override
         public void run() {
+            PeerDefinition recipient = chunkMessage.getRecipient();
+            Socket peerSocket = peerSocketsMap.get(recipient);
 
+            synchronized (peerSocket) {
+                OutputStream socketOutputStream = null;
+                ObjectOutputStream chunkOutputStream = null;
+
+                // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
+                for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
+                    try {
+                        if(peerSocket == null || peerSocket.isClosed()) {
+                            peerSocket = new Socket(recipient.getIPAddress(), recipient.getPort());
+                        }
+
+                        socketOutputStream = peerSocket.getOutputStream();
+                        chunkOutputStream = new ObjectOutputStream(socketOutputStream);
+
+                        chunkOutputStream.writeObject(chunkMessage.chunk);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                        //Last try, didn't work
+                        if(i == Config.MAX_SEND_RETRIES - 1) {
+                            return;
+                        }
+                    } finally {
+                        try {
+                            if(chunkOutputStream != null)
+                                chunkOutputStream.close();
+
+                            if(socketOutputStream != null)
+                                socketOutputStream.close();
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -99,7 +134,9 @@ public class ChunkSender extends Thread {
     }
 
     public void broadcastChunk(Chunk chunk) {
-        chunksToSend.add(new ChunkMessage(chunk));
+        for(PeerDefinition pd : PeersList.getPeers()) {
+            chunksToSend.add(new ChunkMessage(chunk, pd));
+        }
         wakeup();
     }
 

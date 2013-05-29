@@ -10,4 +10,5 @@ public class Config {
 
     public static final int NUM_USABLE_CORES = Runtime.getRuntime().availableProcessors();
 
+    public static final int MAX_SEND_RETRIES = 10;
 }
