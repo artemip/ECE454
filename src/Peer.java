@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer {
 
-    private class SocketAcceptorThread extends Thread {
+    private class SocketAcceptor implements Runnable {
         @Override
         public void run() {
             Socket connectedSocket;
@@ -32,7 +32,7 @@ public class Peer {
         }
     }
 
-    private class SocketHandlerThread extends Thread {
+    private class SocketHandlerThread implements Runnable {
         private final Socket socket;
 
         public SocketHandlerThread(Socket socket) {
@@ -65,7 +65,7 @@ public class Peer {
 
         serverHandlerWorkerPool = Executors.newFixedThreadPool(Config.MAX_PEERS - 1);
 
-        socketAcceptorThread = new SocketAcceptorThread();
+        socketAcceptorThread = new Thread(new SocketAcceptor());
         socketAcceptorThread.run();
     }
 

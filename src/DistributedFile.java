@@ -11,6 +11,8 @@ public class DistributedFile {
     private Chunk[] chunks;
 
     public DistributedFile(String path) throws FileNotFoundException {
+        //TODO: What if the file is not complete?
+
         this.path = path;
         File file = new File(path);
         String relativePath = Config.FILES_DIRECTORY + "/" + file.getName();

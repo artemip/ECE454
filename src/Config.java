@@ -8,4 +8,6 @@ public class Config {
 
     public static final String FILES_DIRECTORY = "./files";
 
+    public static final int NUM_USABLE_CORES = Runtime.getRuntime().availableProcessors();
+
 }
