@@ -31,7 +31,6 @@ public class ChunkSender extends Thread {
     }
 
     private class ChunkSenderThread implements Runnable {
-
         private ChunkMessage chunkMessage;
 
         public ChunkSenderThread(ChunkMessage chunkMessage) {

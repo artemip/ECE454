@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Chunk implements Serializable {
     public static final int MAX_CHUNK_SIZE = 65536;
-    private String file;
+    private String fileName;
     private int id;
     private byte[] data;
 
@@ -13,7 +13,7 @@ public class Chunk implements Serializable {
             throw new IllegalArgumentException("Chunk size greater than MAX_CHUNK_SIZE: " + size + " > " + MAX_CHUNK_SIZE);
         }
 
-        this.file = file;
+        this.fileName = file;
         this.id = id;
         this.data = data;
     }
@@ -26,7 +26,7 @@ public class Chunk implements Serializable {
         return data;
     }
 
-    public String getFile() {
-        return file;
+    public String getFileName() {
+        return fileName;
     }
 }
