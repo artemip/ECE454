@@ -2,6 +2,8 @@ package ece454p1;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DistributedFile {
     /**
@@ -17,27 +19,35 @@ public class DistributedFile {
     //Uniquely identify an incomplete file from a complete one
     private byte[] INCOMPLETE_FILE_MAGIC_HEADER = new byte[] { 'T', 'E', 'M', 'P', 'F', 'I', 'L', 'E', 0 };
 
-    private class IncompleteFileMetadata implements Serializable {
+    public class IncompleteFileMetadata implements Serializable {
+        private String fileName;
         //Array of boolean values indicating whether we have the chunk or not
         private boolean[] chunkAvailability;
-        private int dataSize;
+        private long dataSize;
 
-        public IncompleteFileMetadata(boolean[] chunkAvailability, int dataSize) {
+        public IncompleteFileMetadata(boolean[] chunkAvailability, long dataSize, String fileName) {
             this.chunkAvailability = chunkAvailability;
             this.dataSize = dataSize;
+            this.fileName = fileName;
         }
 
-        private boolean[] getChunkAvailability() {
+        public boolean[] getChunkAvailability() {
             return chunkAvailability;
         }
 
-        private int getDataSize() {
+        public long getDataSize() {
             return dataSize;
+        }
+
+        public String getFileName() {
+            return fileName;
         }
     }
 
     private String path;
     private Chunk[] chunks;
+    private long size;
+    private Set<Integer> incompleteChunks;
 
     private byte[] readMagicHeader(FileInputStream fis) throws IOException {
         byte[] magicHeaderArray = new byte[INCOMPLETE_FILE_MAGIC_HEADER.length];
@@ -87,12 +97,45 @@ public class DistributedFile {
         return metadata;
     }
 
-    public DistributedFile(String path) throws FileNotFoundException {
-        //TODO: What if the file is not complete?
+    /**
+     * Create a new file to store external chunk data (i.e. for files not stored on this host)
+     * @param metadata the metadata object for the external file
+     */
+    public DistributedFile(IncompleteFileMetadata metadata) throws IOException {
+        try {
+            this.size = metadata.getDataSize();
+            this.path = metadata.getFileName();
 
-        this.path = path;
+            File f = new File(metadata.getFileName());
+
+            if(!f.exists())
+                f.createNewFile();
+
+            FileOutputStream fos = new FileOutputStream(metadata.getFileName());
+            fos.write(INCOMPLETE_FILE_MAGIC_HEADER);
+
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(metadata);
+            oos.close();
+            fos.close();
+
+            RandomAccessFile raf = new RandomAccessFile(this.path, "rw");
+            raf.setLength(raf.length() + metadata.getDataSize());
+            raf.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Import an existing file into the P2P host (read existing data from file)
+     * @param path path of the file to add
+     * @throws FileNotFoundException
+     */
+    public DistributedFile(String path) throws FileNotFoundException {
         File file = new File(path);
-        String relativePath = Config.FILES_DIRECTORY + "/" + file.getName();
+        this.path = path;
 
         if(!file.exists()) {
             throw new FileNotFoundException("File at " + path + " does not exist.");
@@ -104,25 +147,97 @@ public class DistributedFile {
             ArrayList<Chunk> chunks = new ArrayList<Chunk>(numChunks);
             FileInputStream f = new FileInputStream(file);
 
-            if(!isCompleteFile) {
-                IncompleteFileMetadata metadata = getIncompleteFileMetadata(path);
-                numChunks = (int)(metadata.getDataSize() / Chunk.MAX_CHUNK_SIZE);
-            } else {
-
-            }
-
+            this.incompleteChunks = new HashSet<Integer>();
             byte[] readChunk = new byte[Chunk.MAX_CHUNK_SIZE];
             int numBytesRead;
             int index = 0;
 
-            while((numBytesRead = f.read(readChunk)) > -1) {
-                chunks.add(new Chunk(relativePath, index++, numBytesRead, readChunk));
+            if(isCompleteFile) {
+                this.size = file.length();
+
+                // Read the entire file chunk-by-chunk
+                while((numBytesRead = f.read(readChunk)) > -1) {
+                    chunks.add(new Chunk(this.path, index++, numBytesRead, readChunk));
+                }
+            } else {
+                // Read header information
+                IncompleteFileMetadata metadata = getIncompleteFileMetadata(path);
+
+                boolean[] chunkAvailability = metadata.chunkAvailability;
+
+                //Skip ahead in the filestream to get to the data
+                readMagicHeader(f);
+                readIncompleteFileMetadata(f);
+
+                // Read file data, replacing empty data chunks with 'null's
+                while((numBytesRead = f.read(readChunk)) > -1) {
+                    if(chunkAvailability[index]) {
+                        chunks.add(new Chunk(this.path, index, numBytesRead, readChunk));
+                    } else {
+                        chunks.add(null);
+                        this.incompleteChunks.add(index);
+                    }
+
+                    index++;
+                }
             }
 
             this.chunks = chunks.toArray(this.chunks);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addChunk(Chunk chunk) {
+        if(this.chunks[chunk.getId()] != null) {
+            this.chunks[chunk.getId()] = chunk;
+            this.incompleteChunks.remove(chunk.getId());
+        }
+    }
+
+    public void save() {
+        try {
+            File f = new File(this.path);
+
+            if(!f.exists())
+                f.createNewFile();
+
+            FileOutputStream fos = new FileOutputStream(this.path);
+
+            boolean complete = this.incompleteChunks.isEmpty();
+
+            if(complete) {
+                for(Chunk c : this.chunks) {
+                    fos.write(c.getData());
+                }
+            } else {
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                fos.write(INCOMPLETE_FILE_MAGIC_HEADER);
+
+                boolean[] chunkAvailability = new boolean[this.chunks.length];
+
+                for(Integer i : this.incompleteChunks) {
+                    chunkAvailability[i] = false;
+                }
+
+                IncompleteFileMetadata metadata = new IncompleteFileMetadata(chunkAvailability, this.size, this.path);
+                oos.writeObject(metadata);
+
+                for(Chunk c : this.chunks) {
+                    if(c == null) {
+                        fos.write(new byte[Chunk.MAX_CHUNK_SIZE]);
+                    } else {
+                        fos.write(c.getData());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean hasChunk(int chunkId) {
+        return chunks[chunkId] == null;
     }
 
     public Chunk[] getChunks() {
