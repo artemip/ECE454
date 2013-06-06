@@ -7,3 +7,6 @@
 
 # IDEA files #
 .idea
+
+# Files directory #
+./files

@@ -188,7 +188,7 @@ public class Peer {
         serverHandlerWorkerPool = Executors.newFixedThreadPool(Config.MAX_PEERS - 1);
 
         socketAcceptorThread = new Thread(new SocketAcceptor());
-        socketAcceptorThread.run();
+        socketAcceptorThread.start();
     }
 
 	public int insert(String filename) {
