@@ -10,7 +10,7 @@ public class QueryMessage extends Message {
 
     public static void broadcast(MessageSender sender) {
         for(PeerDefinition pd : PeersList.getPeers()) {
-            sender.sendMessage(new QueryMessage(pd));
+	    //            sender.sendMessage(new QueryMessage(pd));
         }
     }
 

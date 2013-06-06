@@ -102,6 +102,8 @@ public class DistributedFile {
             raf.setLength(raf.length() + metadata.getDataSize());
             raf.close();
 
+            this.chunks = new Chunk[metadata.getChunkAvailability().length];
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -179,13 +181,19 @@ public class DistributedFile {
             this.chunks[chunk.getId()] = chunk;
             this.incompleteChunks.remove(chunk.getId());
 
-            // Save every 20%
-            int numChunks = this.chunks.length;
-            int completeChunks = numChunks - this.incompleteChunks.size();
-
-            if(completeChunks - lastSync > numChunks * 0.2) {
-                lastSync = completeChunks;
+            //Complete file!
+            if(this.incompleteChunks.size() == 0) {
+                this.isComplete = true;
                 save();
+            } else {
+                // If incomplete, save every 20%
+                int numChunks = this.chunks.length;
+                int completeChunks = numChunks - this.incompleteChunks.size();
+
+                if(completeChunks - lastSync > (numChunks * 0.2)) {
+                    lastSync = completeChunks;
+                    save();
+                }
             }
         }
     }
@@ -199,9 +207,9 @@ public class DistributedFile {
 
             FileOutputStream fos = new FileOutputStream(this.fileName);
 
-            boolean complete = this.incompleteChunks.isEmpty();
+            this.isComplete = this.incompleteChunks.isEmpty();
 
-            if(complete) {
+            if(this.isComplete) {
                 for(Chunk c : this.chunks) {
                     fos.write(c.getData());
                 }

@@ -38,14 +38,16 @@ public class MessageSender extends Thread {
                         chunkOutputStream = new ObjectOutputStream(socketOutputStream);
 
                         chunkOutputStream.writeObject(message);
+                        i = Config.MAX_SEND_RETRIES;
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
 
                         //Last try, didn't work
                         if(i == Config.MAX_SEND_RETRIES - 1) {
                             return;
                         }
                     } finally {
+                        /*
                         try {
                             if(chunkOutputStream != null)
                                 chunkOutputStream.close();
@@ -56,6 +58,7 @@ public class MessageSender extends Thread {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        */
                     }
                 }
             }

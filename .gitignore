@@ -7,3 +7,10 @@
 
 # IDEA files #
 .idea
+
+# Files directory #
+files/
+testFiles/
+
+# IntelliJ Output Directory #
+out/

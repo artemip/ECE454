@@ -23,7 +23,7 @@ public class PeersList {
 	 * @param peersFile
 	 * @return
 	 */
-	public static int initialize(String peersFile) {
+	public static int initialize(String peersFile, int peerId) {
         peers = new ArrayList<PeerDefinition>();
 
         BufferedReader fileReader;
@@ -35,8 +35,12 @@ public class PeersList {
 
             fileReader = new BufferedReader(new FileReader(peersFile));
 
+            int index = 0;
+
             while((line = fileReader.readLine()) != null) {
-                peers.add(PeerDefinition.fromString(line));
+                // Only add *other* peers
+                if(index++ != peerId)
+                    peers.add(PeerDefinition.fromString(line));
             }
 
             fileReader.close();
