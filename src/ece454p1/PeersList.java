@@ -1,6 +1,6 @@
-package ece454p1;
+package ece454p1.ece454p1;
 
-import ece454p1.PeerDefinition.MalformedPeerDefinitionException;
+import ece454p1.ece454p1.PeerDefinition.MalformedPeerDefinitionException;
 
 import java.io.BufferedReader;
 import java.io.File;

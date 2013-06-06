@@ -1,4 +1,6 @@
-package ece454p1;
+package ece454p1.ece454p1;
+
+import ece454p1.ece454p1;
 
 public class Config {
 	public static final int MAX_PEERS = 6;

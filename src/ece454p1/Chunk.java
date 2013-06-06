@@ -1,4 +1,6 @@
-package ece454p1;
+package ece454p1.ece454p1;
+
+import ece454p1.ece454p1;
 
 import java.io.Serializable;
 

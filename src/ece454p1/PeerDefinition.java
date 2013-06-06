@@ -1,4 +1,4 @@
-package ece454p1;
+package ece454p1.ece454p1;
 
 public class PeerDefinition {
     private String ipAddress;
