@@ -1,4 +1,4 @@
-package ece454p1.ece454p1;
+package ece454p1;
 
 /**
  * Status is the class that you populate with status data on the state of

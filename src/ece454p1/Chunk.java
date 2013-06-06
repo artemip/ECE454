@@ -1,10 +1,8 @@
-package ece454p1.ece454p1;
-
-import ece454p1.ece454p1;
+package ece454p1;
 
 import java.io.Serializable;
 
-public class Chunk implements Serializable {
+public class Chunk extends Message implements Serializable {
     public static final int MAX_CHUNK_SIZE = 65536;
     private String fileName;
     private int id;

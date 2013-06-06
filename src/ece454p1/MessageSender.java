@@ -1,6 +1,4 @@
-package ece454p1.ece454p1;
-
-import ece454p1.ece454p1;
+package ece454p1;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -12,35 +10,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChunkSender extends Thread {
+public class MessageSender extends Thread {
+    private class MessageThread implements Runnable {
+        private Message message;
 
-    private class ChunkMessage {
-        private Chunk chunk;
-        private PeerDefinition recipient;
-
-        public ChunkMessage(Chunk chunk, PeerDefinition recipient) {
-            this.chunk = chunk;
-            this.recipient = recipient;
+        public MessageThread(Message message) {
+            this.message = message;
         }
 
-        public Chunk getChunk() {
-            return chunk;
-        }
-
-        public PeerDefinition getRecipient() {
-            return recipient;
-        }
-    }
-
-    private class ChunkSenderThread implements Runnable {
-        private ChunkMessage chunkMessage;
-
-        public ChunkSenderThread(ChunkMessage chunkMessage) {
-            this.chunkMessage = chunkMessage;
-        }
         @Override
         public void run() {
-            PeerDefinition recipient = chunkMessage.getRecipient();
+            PeerDefinition recipient = message.getRecipient();
             Socket peerSocket = peerSocketsMap.get(recipient);
 
             synchronized (peerSocket) {
@@ -57,7 +37,7 @@ public class ChunkSender extends Thread {
                         socketOutputStream = peerSocket.getOutputStream();
                         chunkOutputStream = new ObjectOutputStream(socketOutputStream);
 
-                        chunkOutputStream.writeObject(chunkMessage.chunk);
+                        chunkOutputStream.writeObject(message);
                     } catch (IOException e) {
                         e.printStackTrace();
 
@@ -82,12 +62,12 @@ public class ChunkSender extends Thread {
         }
     }
 
-    private ConcurrentLinkedQueue<ChunkMessage> chunksToSend;
+    private ConcurrentLinkedQueue<Message> messagesToSend;
     private ExecutorService senderThreadPool;
     private final Map<PeerDefinition, Socket> peerSocketsMap;
     private boolean stopSending = false;
 
-    public ChunkSender() {
+    public MessageSender() {
         peerSocketsMap = new ConcurrentHashMap<PeerDefinition, Socket>();
     }
 
@@ -111,19 +91,19 @@ public class ChunkSender extends Thread {
 
     @Override
     public void run() {
-        ChunkMessage chunk;
+        Message msg;
         try {
             while(!stopSending) {
                 //Process work queue
 
                 synchronized (this) {
                     // While nothing to process, wait
-                    while((chunk = chunksToSend.poll()) == null) {
+                    while((msg = messagesToSend.poll()) == null) {
                         wait();
                     }
                 }
 
-                senderThreadPool.execute(new ChunkSenderThread(chunk));
+                senderThreadPool.execute(new MessageSender.MessageThread(msg));
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -134,15 +114,8 @@ public class ChunkSender extends Thread {
         notifyAll();
     }
 
-    public void broadcastChunk(Chunk chunk) {
-        for(PeerDefinition pd : PeersList.getPeers()) {
-            chunksToSend.add(new ChunkMessage(chunk, pd));
-        }
-        wakeup();
-    }
-
-    public void sendChunk(Chunk chunk, PeerDefinition recipient) {
-        chunksToSend.add(new ChunkMessage(chunk, recipient));
+    public void sendMessage(Message message) {
+        messagesToSend.add(message);
         wakeup();
     }
 

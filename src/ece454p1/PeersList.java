@@ -1,6 +1,4 @@
-package ece454p1.ece454p1;
-
-import ece454p1.ece454p1.PeerDefinition.MalformedPeerDefinitionException;
+package ece454p1;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,11 +42,22 @@ public class PeersList {
             fileReader.close();
         } catch (IOException e) {
             return ReturnCodes.PEERS_FILE_ERR;
-        } catch (MalformedPeerDefinitionException e) {
+        } catch (PeerDefinition.MalformedPeerDefinitionException e) {
             return ReturnCodes.PEERS_FILE_ERR;
         }
 
         return ReturnCodes.OK;
+    }
+
+    public static PeerDefinition getPeerByAddress(String ipAddress, int port) {
+        String fullAddress = ipAddress + ":" + port;
+
+        for(PeerDefinition pd : peers) {
+            if(pd.getFullAddress() == fullAddress)
+                return pd;
+        }
+
+        return null;
     }
 
     public static List<PeerDefinition> getPeers() {

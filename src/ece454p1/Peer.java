@@ -1,6 +1,7 @@
-package ece454p1.ece454p1;
+package ece454p1;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ public class Peer {
         public void run() {
             InputStream socketInputStream = null;
             ObjectInputStream chunkInputStream = null;
-            Chunk readChunk;
 
             // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
             for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
@@ -55,23 +55,42 @@ public class Peer {
                     try {
                         Object obj = chunkInputStream.readObject();
 
-                        if(obj instanceof Chunk) {
-                            readChunk = (Chunk)obj;
+                        if(obj instanceof ChunkMessage) {
+                            ChunkMessage msg = (ChunkMessage)obj;
+                            Chunk chunk = msg.getChunk();
+
                             // Read the chunk. Now find (or create) the appropriate file and write the chunk
-                            DistributedFile distFile = getFileForChunk(readChunk);
+                            DistributedFile distFile = getFileForChunk(chunk);
 
                             if(distFile == null) {
                                 // No file for this chunk
-                                distFile = new DistributedFile(readChunk.getMetadata());
+                                distFile = new DistributedFile(chunk.getMetadata());
                             } else {
                                 if(distFile.isComplete()) {
                                     // Ignore this chunk
                                 } else {
-                                    if(!distFile.hasChunk(readChunk.getId())) {
-                                        distFile.addChunk(readChunk);
+                                    if(!distFile.hasChunk(chunk.getId())) {
+                                        distFile.addChunk(chunk);
                                     }
                                 }
                             }
+                        } else if(obj instanceof PullMessage) {
+                            // Push all chunks to sender
+                            InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
+                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
+
+                            sendAllChunksToPeer(pd);
+                        } else if(obj instanceof QueryMessage) {
+                            // Return query to sender
+                            InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
+                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
+
+                            //file = msg.getFile()
+                            //status = ....
+                            //populate query data
+                            //messageSender.sendMessage(new QueryMessage(pd,));
+                        } else {
+                            System.err.println("Received message of unknown type");
                         }
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
@@ -101,12 +120,13 @@ public class Peer {
     private ExecutorService serverHandlerWorkerPool;
     private boolean closing = false;
     private List<DistributedFile> files;
-    private ChunkSender chunkSender;
+    private MessageSender messageSender;
+    private PeerDefinition definition;
 
-    public Peer(int port, ChunkSender chunkSender) {
+    public Peer(int port, MessageSender messageSender) {
         this.port = port;
         this.files = new ArrayList<DistributedFile>();
-        this.chunkSender = chunkSender;
+        this.messageSender = messageSender;
 
         //Create directory in which to store files
         (new File(Config.FILES_DIRECTORY)).mkdirs();
@@ -117,14 +137,20 @@ public class Peer {
             // Problem scanning files
             e.printStackTrace();
         }
-
-        broadcastFiles();
     }
 
     private void broadcastFiles() {
         for(DistributedFile f : files) {
             for(Chunk c : f.getChunks()) {
-                chunkSender.broadcastChunk(c);
+                ChunkMessage.broadcast(c, messageSender);
+            }
+        }
+    }
+
+    private void sendAllChunksToPeer(PeerDefinition recipient) {
+        for(DistributedFile f : files) {
+            for(Chunk c : f.getChunks()) {
+                messageSender.sendMessage(new ChunkMessage(c, recipient));
             }
         }
     }
@@ -134,6 +160,12 @@ public class Peer {
 
         for(File file : filesDir.listFiles()) {
             this.files.add(new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName()));
+        }
+    }
+
+    private void saveFiles() {
+        for(DistributedFile f : files) {
+            f.save();
         }
     }
 
@@ -182,7 +214,7 @@ public class Peer {
 
         // Send the chunks to all connected peers
         for(Chunk c : newFile.getChunks())
-            chunkSender.broadcastChunk(c);
+            ChunkMessage.broadcast(c, messageSender);
 
         return ReturnCodes.OK;
     }
@@ -203,7 +235,19 @@ public class Peer {
 	 * parameter
 	 */
 	public int join() {
-        //Sync with all peers: push local files, pull external files (that it does not already have)
+        try {
+            this.startServerSocket();
+        } catch (IOException e) {
+            System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
+        }
+
+        messageSender.start();
+
+        broadcastFiles();
+
+        // Pull files
+        PullMessage.broadcast(messageSender);
+
         return ReturnCodes.OK;
     }
 

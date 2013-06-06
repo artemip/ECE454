@@ -1,6 +1,4 @@
-package ece454p1.ece454p1;
-
-import ece454p1.ece454p1;
+package ece454p1;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -26,6 +24,7 @@ public class DistributedFile {
     private long size;
     private Set<Integer> incompleteChunks;
     private boolean isComplete;
+    private int lastSync;
 
     private byte[] readMagicHeader(FileInputStream fis) throws IOException {
         byte[] magicHeaderArray = new byte[INCOMPLETE_FILE_MAGIC_HEADER.length];
@@ -179,6 +178,15 @@ public class DistributedFile {
         if(this.chunks[chunk.getId()] != null) {
             this.chunks[chunk.getId()] = chunk;
             this.incompleteChunks.remove(chunk.getId());
+
+            // Save every 20%
+            int numChunks = this.chunks.length;
+            int completeChunks = numChunks - this.incompleteChunks.size();
+
+            if(completeChunks - lastSync > numChunks * 0.2) {
+                lastSync = completeChunks;
+                save();
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-package ece454p1.ece454p1;
+package ece454p1;
 
 public class PeerDefinition {
     private String ipAddress;
@@ -18,7 +18,7 @@ public class PeerDefinition {
     }
 
     public String getFullAddress() {
-        return ipAddress + port;
+        return ipAddress + ":" + port;
     }
 
     public static PeerDefinition fromString(String peerDefinitionString) throws MalformedPeerDefinitionException {
