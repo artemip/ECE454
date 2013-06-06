@@ -8,23 +8,7 @@ package ece454p1;
  * implement to access such data You will need to create methods to populate the
  * Status data.
  **/
-public abstract class Status {
-
-	public abstract int numberOfFiles();
-
-	/*Use -1 to indicate if the file requested is not present*/
-	public abstract float fractionPresentLocally(int fileNumber); 
-
-	/*Use -1 to indicate if the file requested is not present*/
-	public abstract float fractionPresent(int fileNumber); 
-
-	/*Use -1 to indicate if the file requested is not present*/
-	public abstract int minimumReplicationLevel(int fileNumber); 
-	
-	/*Use -1 to indicate if the file requested is not present*/
-	public abstract float averageReplicationLevel(int fileNumber); 
-	
-	
+public class Status {
 	
 	// This is very cheesy and very lazy, but the focus of this assignment 
 	// is not on dynamic containers but on the BT p2p file distribution
@@ -39,7 +23,7 @@ public abstract class Status {
 	 * The fraction of the file present locally (= chunks on this peer/total
 	 * number chunks in the file)
 	 */
-	float[] local;
+	private float[] local;
 
 	/*
 	 * The fraction of the file present in the system 
@@ -50,20 +34,46 @@ public abstract class Status {
 	 * given that a file must be added at a peer, 
 	 * think about why this number would ever not be 1.)
 	 */
-	float[] system;
+	private float[] system;
 
 	/*
 	 * Sum by chunk over all peers; the minimum of this number is the least
 	 * replicated chunk, and thus represents the least level of 
 	 * replication of  the file
 	 */
-	int[] leastReplication;
+	private int[] leastReplication;
 
 	/*
 	 * Sum all chunks in all peers; 
 	 * dived this by the number of chunks in the file; 
 	 * this is the average level of replication of the file
 	 */
-	float[] weightedLeastReplication;
+	private float[] weightedLeastReplication;
+	
+	
+	public int numberOfFiles(){
+		return numFiles;
+	}
 
+	/*Use -1 to indicate if the file requested is not present*/
+	public float fractionPresentLocally(int fileNumber){
+		return local[fileNumber];
+	} 
+
+	/*Use -1 to indicate if the file requested is not present*/
+	public float fractionPresent(int fileNumber){
+		return system[fileNumber];
+	}
+
+	/*Use -1 to indicate if the file requested is not present*/
+	public int minimumReplicationLevel(int fileNumber){
+		return leastReplication[fileNumber];
+	}
+	
+	/*Use -1 to indicate if the file requested is not present*/
+	public float averageReplicationLevel(int fileNumber){
+		return weightedLeastReplication[fileNumber];
+	}
+	
+	
 }
