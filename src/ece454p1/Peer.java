@@ -81,6 +81,7 @@ public class Peer {
 
                             sendAllChunksToPeer(pd);
                         } else if(obj instanceof QueryMessage) {
+                            //TODO: do this
                             // Return query to sender
                             InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
                             PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
@@ -252,9 +253,11 @@ public class Peer {
     }
 
 	public int leave() {
-        //Close all sockets
         //Inform all peers of absence
         //Preferred: push out rare file chunks before leaving
+        //Close all sockets
+        close();
+        messageSender.shutdown();
         return ReturnCodes.OK;
     }
 
