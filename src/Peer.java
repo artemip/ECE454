@@ -42,7 +42,6 @@ public class Peer {
 
         @Override
         public void run() {
-            //TODO: Implement communication protocol (recipient-side) here
             InputStream socketInputStream = null;
             ObjectInputStream chunkInputStream = null;
             Chunk readChunk;
@@ -141,7 +140,7 @@ public class Peer {
     private DistributedFile getFileForChunk(Chunk chunk) {
         for(DistributedFile f : this.files) {
             // We have a file for this chunk
-            if(f.getFileName() == chunk.getFileName()) {
+            if(f.getFileName() == chunk.getMetadata().getFileName()) {
                 return f;
             }
         }

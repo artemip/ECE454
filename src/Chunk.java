@@ -14,7 +14,6 @@ public class Chunk implements Serializable {
             throw new IllegalArgumentException("Chunk size greater than MAX_CHUNK_SIZE: " + size + " > " + MAX_CHUNK_SIZE);
         }
 
-        this.fileName = file;
         this.id = id;
         this.data = data;
         this.metadata = metadata;
@@ -26,10 +25,6 @@ public class Chunk implements Serializable {
 
     public byte[] getData() {
         return this.data;
-    }
-
-    public String getFileName() {
-        return this.fileName;
     }
 
     public IncompleteFileMetadata getMetadata() {
