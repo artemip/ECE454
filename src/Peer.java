@@ -1,8 +1,6 @@
 package ece454p1;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -44,8 +42,57 @@ public class Peer {
 
         @Override
         public void run() {
-
             //TODO: Implement communication protocol (recipient-side) here
+            InputStream socketInputStream = null;
+            ObjectInputStream chunkInputStream = null;
+            Chunk readChunk;
+
+            // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
+            for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
+                try {
+                    socketInputStream = this.socket.getInputStream();
+                    chunkInputStream = new ObjectInputStream(socketInputStream);
+
+                    try {
+                        Object obj = chunkInputStream.readObject();
+
+                        if(obj instanceof Chunk) {
+                            readChunk = (Chunk)obj;
+                            // Read the chunk. Now find (or create) the appropriate file and write the chunk
+                            DistributedFile distFile = getFileForChunk(readChunk);
+
+                            if(distFile == null) {
+                                // No file for this chunk
+                                distFile = new DistributedFile(readChunk.getMetadata());
+                            } else {
+                                if(distFile.isComplete()) {
+                                    // Ignore this chunk
+                                } else {
+                                    if(!distFile.hasChunk(readChunk.getId())) {
+                                        distFile.addChunk(readChunk);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if(chunkInputStream != null)
+                            chunkInputStream.close();
+
+                        if(socketInputStream != null)
+                            socketInputStream.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         }
     }
 
@@ -89,6 +136,17 @@ public class Peer {
         for(File file : filesDir.listFiles()) {
             this.files.add(new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName()));
         }
+    }
+
+    private DistributedFile getFileForChunk(Chunk chunk) {
+        for(DistributedFile f : this.files) {
+            // We have a file for this chunk
+            if(f.getFileName() == chunk.getFileName()) {
+                return f;
+            }
+        }
+
+        return null;
     }
 
     public void startServerSocket() throws IOException {

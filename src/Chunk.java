@@ -7,8 +7,9 @@ public class Chunk implements Serializable {
     private String fileName;
     private int id;
     private byte[] data;
+    private IncompleteFileMetadata metadata;
 
-    public Chunk(String file, int id, int size, byte[] data) throws IllegalArgumentException {
+    public Chunk(String file, int id, int size, byte[] data, IncompleteFileMetadata metadata) throws IllegalArgumentException {
         if (data.length > MAX_CHUNK_SIZE) {
             throw new IllegalArgumentException("Chunk size greater than MAX_CHUNK_SIZE: " + size + " > " + MAX_CHUNK_SIZE);
         }
@@ -16,17 +17,22 @@ public class Chunk implements Serializable {
         this.fileName = file;
         this.id = id;
         this.data = data;
+        this.metadata = metadata;
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public byte[] getData() {
-        return data;
+        return this.data;
     }
 
     public String getFileName() {
-        return fileName;
+        return this.fileName;
+    }
+
+    public IncompleteFileMetadata getMetadata() {
+        return this.metadata;
     }
 }

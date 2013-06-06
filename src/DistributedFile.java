@@ -19,35 +19,11 @@ public class DistributedFile {
     //Uniquely identify an incomplete file from a complete one
     private byte[] INCOMPLETE_FILE_MAGIC_HEADER = new byte[] { 'T', 'E', 'M', 'P', 'F', 'I', 'L', 'E', 0 };
 
-    public class IncompleteFileMetadata implements Serializable {
-        private String fileName;
-        //Array of boolean values indicating whether we have the chunk or not
-        private boolean[] chunkAvailability;
-        private long dataSize;
-
-        public IncompleteFileMetadata(boolean[] chunkAvailability, long dataSize, String fileName) {
-            this.chunkAvailability = chunkAvailability;
-            this.dataSize = dataSize;
-            this.fileName = fileName;
-        }
-
-        public boolean[] getChunkAvailability() {
-            return chunkAvailability;
-        }
-
-        public long getDataSize() {
-            return dataSize;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-    }
-
-    private String path;
+    private String fileName;
     private Chunk[] chunks;
     private long size;
     private Set<Integer> incompleteChunks;
+    private boolean isComplete;
 
     private byte[] readMagicHeader(FileInputStream fis) throws IOException {
         byte[] magicHeaderArray = new byte[INCOMPLETE_FILE_MAGIC_HEADER.length];
@@ -102,9 +78,11 @@ public class DistributedFile {
      * @param metadata the metadata object for the external file
      */
     public DistributedFile(IncompleteFileMetadata metadata) throws IOException {
+        this.isComplete = false;
+
         try {
             this.size = metadata.getDataSize();
-            this.path = metadata.getFileName();
+            this.fileName = metadata.getFileName();
 
             File f = new File(metadata.getFileName());
 
@@ -119,7 +97,7 @@ public class DistributedFile {
             oos.close();
             fos.close();
 
-            RandomAccessFile raf = new RandomAccessFile(this.path, "rw");
+            RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw");
             raf.setLength(raf.length() + metadata.getDataSize());
             raf.close();
 
@@ -130,19 +108,19 @@ public class DistributedFile {
 
     /**
      * Import an existing file into the P2P host (read existing data from file)
-     * @param path path of the file to add
+     * @param path fileName of the file to add
      * @throws FileNotFoundException
      */
     public DistributedFile(String path) throws FileNotFoundException {
         File file = new File(path);
-        this.path = path;
+        this.fileName = path;
 
         if(!file.exists()) {
             throw new FileNotFoundException("File at " + path + " does not exist.");
         }
 
         try {
-            boolean isCompleteFile = isCompleteFile(path);
+            this.isComplete = isCompleteFile(path);
             int numChunks = (int)((file.length()) / Chunk.MAX_CHUNK_SIZE);
             ArrayList<Chunk> chunks = new ArrayList<Chunk>(numChunks);
             FileInputStream f = new FileInputStream(file);
@@ -152,27 +130,34 @@ public class DistributedFile {
             int numBytesRead;
             int index = 0;
 
-            if(isCompleteFile) {
+            if(this.isComplete) {
                 this.size = file.length();
+
+                boolean[] chunkAvailability = new boolean[(int)Math.ceil(this.size / Chunk.MAX_CHUNK_SIZE)];
+                for(int i = 0; i < chunkAvailability.length; ++i) {
+                    chunkAvailability[i] = true;
+                }
+
+                IncompleteFileMetadata metadata = new IncompleteFileMetadata(chunkAvailability, this.size, this.fileName);
 
                 // Read the entire file chunk-by-chunk
                 while((numBytesRead = f.read(readChunk)) > -1) {
-                    chunks.add(new Chunk(this.path, index++, numBytesRead, readChunk));
+                    chunks.add(new Chunk(this.fileName, index++, numBytesRead, readChunk, metadata));
                 }
             } else {
                 // Read header information
                 IncompleteFileMetadata metadata = getIncompleteFileMetadata(path);
 
-                boolean[] chunkAvailability = metadata.chunkAvailability;
+                boolean[] chunkAvailability = metadata.getChunkAvailability();
 
-                //Skip ahead in the filestream to get to the data
+                //Skip ahead in the file stream to get to the data
                 readMagicHeader(f);
                 readIncompleteFileMetadata(f);
 
                 // Read file data, replacing empty data chunks with 'null's
                 while((numBytesRead = f.read(readChunk)) > -1) {
                     if(chunkAvailability[index]) {
-                        chunks.add(new Chunk(this.path, index, numBytesRead, readChunk));
+                        chunks.add(new Chunk(this.fileName, index, numBytesRead, readChunk, metadata));
                     } else {
                         chunks.add(null);
                         this.incompleteChunks.add(index);
@@ -197,12 +182,12 @@ public class DistributedFile {
 
     public void save() {
         try {
-            File f = new File(this.path);
+            File f = new File(this.fileName);
 
             if(!f.exists())
                 f.createNewFile();
 
-            FileOutputStream fos = new FileOutputStream(this.path);
+            FileOutputStream fos = new FileOutputStream(this.fileName);
 
             boolean complete = this.incompleteChunks.isEmpty();
 
@@ -220,7 +205,7 @@ public class DistributedFile {
                     chunkAvailability[i] = false;
                 }
 
-                IncompleteFileMetadata metadata = new IncompleteFileMetadata(chunkAvailability, this.size, this.path);
+                IncompleteFileMetadata metadata = new IncompleteFileMetadata(chunkAvailability, this.size, this.fileName);
                 oos.writeObject(metadata);
 
                 for(Chunk c : this.chunks) {
@@ -237,10 +222,18 @@ public class DistributedFile {
     }
 
     public boolean hasChunk(int chunkId) {
-        return chunks[chunkId] == null;
+        return chunks[chunkId] != null;
     }
 
     public Chunk[] getChunks() {
         return chunks;
+    }
+
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    public boolean isComplete() {
+        return this.isComplete;
     }
 }
