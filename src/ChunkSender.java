@@ -146,6 +146,7 @@ public class ChunkSender extends Thread {
 
     public void shutdown() {
         stopSending = true;
+        wakeup();
         this.interrupt();
 
         if(senderThreadPool != null) {

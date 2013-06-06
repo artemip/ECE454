@@ -9,12 +9,16 @@ public class ece454p1 {
         System.out.println("Starting server on port " + port + " using peers file at " + peersFile);
 
         PeersList.initialize(peersFile);
-        Peer peer = new Peer(port);
+        ChunkSender chunkSender = new ChunkSender();
+        Peer peer = new Peer(port, chunkSender);
+
         try {
             peer.startServerSocket();
         } catch (IOException e) {
             System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
         }
+
+        chunkSender.start();
 
         //TODO: Commandline interface
     }

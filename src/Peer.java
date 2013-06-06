@@ -1,9 +1,12 @@
 package ece454p1;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -51,12 +54,41 @@ public class Peer {
     private Thread socketAcceptorThread;
     private ExecutorService serverHandlerWorkerPool;
     private boolean closing = false;
+    private List<DistributedFile> files;
+    private ChunkSender chunkSender;
 
-    public Peer(int port) {
+    public Peer(int port, ChunkSender chunkSender) {
         this.port = port;
+        this.files = new ArrayList<DistributedFile>();
+        this.chunkSender = chunkSender;
 
         //Create directory in which to store files
         (new File(Config.FILES_DIRECTORY)).mkdirs();
+
+        try {
+            scanFiles();
+        } catch (FileNotFoundException e) {
+            // Problem scanning files
+            e.printStackTrace();
+        }
+
+        broadcastFiles();
+    }
+
+    private void broadcastFiles() {
+        for(DistributedFile f : files) {
+            for(Chunk c : f.getChunks()) {
+                chunkSender.broadcastChunk(c);
+            }
+        }
+    }
+
+    private void scanFiles() throws FileNotFoundException {
+        File filesDir = new File(Config.FILES_DIRECTORY);
+
+        for(File file : filesDir.listFiles()) {
+            this.files.add(new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName()));
+        }
     }
 
     public void startServerSocket() throws IOException {
@@ -75,15 +107,26 @@ public class Peer {
             return ReturnCodes.FILE_NOT_FOUND;
         }
 
-        File peerFile = new File(Config.FILES_DIRECTORY + "/" + file.getName());
+        String newPath = Config.FILES_DIRECTORY + "/" + file.getName();
+        File peerFile = new File(newPath);
+        DistributedFile newFile;
         try {
             FileUtils.copyFile(file, peerFile);
+
+            // Save as DistributedFile, which splits it up into chunks
+            newFile = new DistributedFile(newPath);
         } catch (IOException e) {
             e.printStackTrace();
             return ReturnCodes.FILE_COPY_ERR;
         }
 
-        //Push out the file to all other peers (split into chunks, send, and distribute among all peers (somehow))
+        // Add to list of local files
+        files.add(newFile);
+
+        // Send the chunks to all connected peers
+        for(Chunk c : newFile.getChunks())
+            chunkSender.broadcastChunk(c);
+
         return ReturnCodes.OK;
     }
 
