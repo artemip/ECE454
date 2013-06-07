@@ -20,7 +20,7 @@ public class DistributedFile {
     private byte[] INCOMPLETE_FILE_MAGIC_HEADER = new byte[] { 'T', 'E', 'M', 'P', 'F', 'I', 'L', 'E', 0 };
 
     private String fileName;
-    private Chunk[] chunks;
+    private Chunk[] chunks = new Chunk[0];
     private long size;
     private Set<Integer> incompleteChunks;
     private boolean isComplete;
@@ -55,10 +55,10 @@ public class DistributedFile {
 
         for(int i = 0; i < magicHeaderArray.length; ++i) {
             if(magicHeaderArray[i] != INCOMPLETE_FILE_MAGIC_HEADER[i])
-                return false;
+                return true;
         }
 
-        return true;
+        return false;
     }
 
     private IncompleteFileMetadata getIncompleteFileMetadata(String path) throws IOException {
@@ -102,6 +102,8 @@ public class DistributedFile {
             raf.setLength(raf.length() + metadata.getDataSize());
             raf.close();
 
+            this.chunks = new Chunk[metadata.getChunkAvailability().length];
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -122,7 +124,7 @@ public class DistributedFile {
 
         try {
             this.isComplete = isCompleteFile(path);
-            int numChunks = (int)((file.length()) / Chunk.MAX_CHUNK_SIZE);
+            int numChunks = (int)Math.ceil(((double)file.length()) / Chunk.MAX_CHUNK_SIZE);
             ArrayList<Chunk> chunks = new ArrayList<Chunk>(numChunks);
             FileInputStream f = new FileInputStream(file);
 
@@ -134,7 +136,7 @@ public class DistributedFile {
             if(this.isComplete) {
                 this.size = file.length();
 
-                boolean[] chunkAvailability = new boolean[(int)Math.ceil(this.size / Chunk.MAX_CHUNK_SIZE)];
+                boolean[] chunkAvailability = new boolean[numChunks];
                 for(int i = 0; i < chunkAvailability.length; ++i) {
                     chunkAvailability[i] = true;
                 }
@@ -143,7 +145,7 @@ public class DistributedFile {
 
                 // Read the entire file chunk-by-chunk
                 while((numBytesRead = f.read(readChunk)) > -1) {
-                    chunks.add(new Chunk(this.fileName, index++, numBytesRead, readChunk, metadata));
+                    chunks.add(new Chunk(index++, numBytesRead, readChunk, metadata));
                 }
             } else {
                 // Read header information
@@ -158,7 +160,7 @@ public class DistributedFile {
                 // Read file data, replacing empty data chunks with 'null's
                 while((numBytesRead = f.read(readChunk)) > -1) {
                     if(chunkAvailability[index]) {
-                        chunks.add(new Chunk(this.fileName, index, numBytesRead, readChunk, metadata));
+                        chunks.add(new Chunk(index, numBytesRead, readChunk, metadata));
                     } else {
                         chunks.add(null);
                         this.incompleteChunks.add(index);
@@ -179,13 +181,19 @@ public class DistributedFile {
             this.chunks[chunk.getId()] = chunk;
             this.incompleteChunks.remove(chunk.getId());
 
-            // Save every 20%
-            int numChunks = this.chunks.length;
-            int completeChunks = numChunks - this.incompleteChunks.size();
-
-            if(completeChunks - lastSync > numChunks * 0.2) {
-                lastSync = completeChunks;
+            //Complete file!
+            if(this.incompleteChunks.size() == 0) {
+                this.isComplete = true;
                 save();
+            } else {
+                // If incomplete, save every 20%
+                int numChunks = this.chunks.length;
+                int completeChunks = numChunks - this.incompleteChunks.size();
+
+                if(completeChunks - lastSync > (numChunks * 0.2)) {
+                    lastSync = completeChunks;
+                    save();
+                }
             }
         }
     }
@@ -199,9 +207,9 @@ public class DistributedFile {
 
             FileOutputStream fos = new FileOutputStream(this.fileName);
 
-            boolean complete = this.incompleteChunks.isEmpty();
+            this.isComplete = this.incompleteChunks.isEmpty();
 
-            if(complete) {
+            if(this.isComplete) {
                 for(Chunk c : this.chunks) {
                     fos.write(c.getData());
                 }
