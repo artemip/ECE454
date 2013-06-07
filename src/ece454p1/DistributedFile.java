@@ -177,6 +177,8 @@ public class DistributedFile {
     }
 
     public void addChunk(Chunk chunk) {
+        System.out.println("Adding chunk with id " + chunk.getId() + " to file " + chunk.getMetadata().getFileName());
+
         if(this.chunks[chunk.getId()] != null) {
             this.chunks[chunk.getId()] = chunk;
             this.incompleteChunks.remove(chunk.getId());

@@ -47,8 +47,7 @@ public class Peer {
             ObjectInputStream chunkInputStream = null;
 
             synchronized (this.socket) {
-                // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
-                for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
+                while(!this.socket.isClosed()) {
                     try {
                         socketInputStream = this.socket.getInputStream();
                         chunkInputStream = new ObjectInputStream(socketInputStream);
@@ -128,39 +127,16 @@ public class Peer {
 >>>>>>> 9089cebc7abea458ec26e61a7c2036fba21dafe3
                             System.err.println("Received message of unknown type");
                         }
-<<<<<<< HEAD
                     } catch (IOException e) {
                         System.err.println("Problem reading an object from the socket: " + e);
                     } finally {
-                        /*
                         try {
                             if(chunkInputStream != null)
                                 chunkInputStream.close();
 
-                            if(socketInputStream != null)
-                                socketInputStream.close();
-
                         } catch (IOException e) {
-                            System.err.println("Problems closing socket stream: " + e);
+                            System.err.println("Problems closing object input stream: " + e);
                         }
-                        */
-=======
-                    } catch (ClassNotFoundException e) {
-                        System.err.println("Received message of unknown type");
-                    }
-                } catch (IOException e) {
-                    System.err.println("Problem reading an object from the socket: " + e);
-                } finally {
-                    try {
-                        if(chunkInputStream != null)
-                            chunkInputStream.close();
-
-                        if(socketInputStream != null)
-                            socketInputStream.close();
-
-                    } catch (IOException e) {
-                        System.err.println("Problems closing socket stream: " + e);
->>>>>>> 65fe4090289c4f555505ebe18a01b283892e3a9c
                     }
                 }
             }
