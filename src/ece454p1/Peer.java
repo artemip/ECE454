@@ -4,8 +4,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +65,8 @@ public class Peer {
                             if(distFile == null) {
                                 // No file for this chunk
                                 distFile = new DistributedFile(chunk.getMetadata());
+                                files.put(distFile.getFileName(), distFile);
+                                distFile.addChunk(chunk);
                             } else {
                                 if(distFile.isComplete()) {
                                     // Ignore this chunk
@@ -94,10 +96,10 @@ public class Peer {
                             System.err.println("Received message of unknown type");
                         }
                     } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                        System.err.println("Received message of unknown type");
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println("Problem reading an object from the socket: " + e);
                 } finally {
                     try {
                         if(chunkInputStream != null)
@@ -107,7 +109,7 @@ public class Peer {
                             socketInputStream.close();
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println("Problems closing socket stream: " + e);
                     }
                 }
             }
@@ -120,13 +122,13 @@ public class Peer {
     private Thread socketAcceptorThread;
     private ExecutorService serverHandlerWorkerPool;
     private boolean closing = false;
-    private List<DistributedFile> files;
+    private Map<String, DistributedFile> files;
     private MessageSender messageSender;
     private PeerDefinition definition;
 
     public Peer(int port, MessageSender messageSender) {
         this.port = port;
-        this.files = new ArrayList<DistributedFile>();
+        this.files = new ConcurrentHashMap<String, DistributedFile>();
         this.messageSender = messageSender;
 
         //Create directory in which to store files
@@ -141,7 +143,7 @@ public class Peer {
     }
 
     private void broadcastFiles() {
-        for(DistributedFile f : files) {
+        for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
                 ChunkMessage.broadcast(c, messageSender);
             }
@@ -149,7 +151,7 @@ public class Peer {
     }
 
     private void sendAllChunksToPeer(PeerDefinition recipient) {
-        for(DistributedFile f : files) {
+        for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
                 messageSender.sendMessage(new ChunkMessage(c, recipient));
             }
@@ -160,25 +162,19 @@ public class Peer {
         File filesDir = new File(Config.FILES_DIRECTORY);
 
         for(File file : filesDir.listFiles()) {
-            this.files.add(new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName()));
+            DistributedFile distFile = new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName());
+            this.files.put(distFile.getFileName(), distFile);
         }
     }
 
     private void saveFiles() {
-        for(DistributedFile f : files) {
+        for(DistributedFile f : files.values()) {
             f.save();
         }
     }
 
     private DistributedFile getFileForChunk(Chunk chunk) {
-        for(DistributedFile f : this.files) {
-            // We have a file for this chunk
-            if(f.getFileName() == chunk.getMetadata().getFileName()) {
-                return f;
-            }
-        }
-
-        return null;
+        return files.get(chunk.getMetadata().getFileName());
     }
 
     public void startServerSocket() throws IOException {
@@ -211,7 +207,7 @@ public class Peer {
         }
 
         // Add to list of local files
-        files.add(newFile);
+        files.put(newFile.getFileName(), newFile);
 
         // Send the chunks to all connected peers
         for(Chunk c : newFile.getChunks())

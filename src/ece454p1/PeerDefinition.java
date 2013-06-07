@@ -1,6 +1,8 @@
 package ece454p1;
 
-public class PeerDefinition {
+import java.io.Serializable;
+
+public class PeerDefinition implements Serializable {
     private String ipAddress;
     private int port;
 
@@ -28,7 +30,7 @@ public class PeerDefinition {
             throw new MalformedPeerDefinitionException();
 
         String ipAddress = splitLine[0];
-        int port = Integer.getInteger(splitLine[1]);
+        int port = Integer.parseInt(splitLine[1]);
 
         return new PeerDefinition(ipAddress, port);
     }

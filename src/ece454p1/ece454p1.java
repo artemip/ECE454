@@ -6,11 +6,13 @@ import java.io.InputStreamReader;
 
 public class ece454p1 {
     public static void main(String[] args) {
-        int port = Integer.parseInt(args[0]);
-        String peersFile = args[1];
+        int peerId = Integer.parseInt(args[0]);
+        int port = Integer.parseInt(args[1]);
+        String peersFile = args[2];
+
         System.out.println("Starting server on port " + port + " using peers file at " + peersFile);
 
-        PeersList.initialize(peersFile);
+        PeersList.initialize(peersFile, peerId);
         MessageSender messageSender = new MessageSender();
         Peer peer = new Peer(port, messageSender);
 
@@ -49,7 +51,6 @@ public class ece454p1 {
 	    	//Query
 	    	else if (userInput.equals("2")){
 	    		peer.query(new Status());
-	    		
 	    	}
 	    	//Join
 	    	else if (userInput.equals("3")){
