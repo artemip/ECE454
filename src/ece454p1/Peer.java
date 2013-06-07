@@ -74,23 +74,32 @@ public class Peer {
                                     }
                                 }
                             }
-                        } else if(obj instanceof PullMessage) {
+                        } 
+                        else if(obj instanceof PullMessage) {
                             // Push all chunks to sender
                             InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
                             PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
 
                             sendAllChunksToPeer(pd);
-                        } else if(obj instanceof QueryMessage) {
-                            //TODO: do this
-                            // Return query to sender
+                        } 
+                        else if(obj instanceof QueryMessage) {
                             InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
                             PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
-                            //file = msg.getFile()
-                            //status = ....
-                            //populate query data
-                            //messageSender.sendMessage(new QueryMessage(pd,));
-                        } else {
+                            
+                            // got query message, build PeerFileListInfo Message to send back
+                            PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
+                            FileListInfoMessage.sendBack(messageSender, pd, fListInfo);                            
+                        
+                        } 
+                        else if (obj instanceof FileListInfoMessage){
+                        	//list of fileListInfo to use in Query()
+                        	InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
+                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
+                            
+                            FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
+                            addPeerFileList(fListInfoMsg.getPeerFileListInfo());                            
+                        }
+                        else {
                             System.err.println("Received message of unknown type");
                         }
                     } catch (ClassNotFoundException e) {
@@ -111,7 +120,6 @@ public class Peer {
                     }
                 }
             }
-
         }
     }
 
@@ -122,11 +130,13 @@ public class Peer {
     private boolean closing = false;
     private List<DistributedFile> files;
     private MessageSender messageSender;
-    private PeerDefinition definition;
-
+    private List<PeerFileListInfo> peerFileLists;
+    private int peerResponseCounter;
+    
     public Peer(int port, MessageSender messageSender) {
         this.port = port;
         this.files = new ArrayList<DistributedFile>();
+        this.peerFileLists = new ArrayList<PeerFileListInfo>();
         this.messageSender = messageSender;
 
         //Create directory in which to store files
@@ -156,6 +166,10 @@ public class Peer {
         }
     }
 
+    private List<DistributedFile> getDistributedFileList(){
+    	return this.files;
+    }
+    
     private void scanFiles() throws FileNotFoundException {
         File filesDir = new File(Config.FILES_DIRECTORY);
 
@@ -180,7 +194,7 @@ public class Peer {
 
         return null;
     }
-
+    
     public void startServerSocket() throws IOException {
         if (serverSocket == null)
             serverSocket = new ServerSocket(port);
@@ -227,7 +241,79 @@ public class Peer {
         //2) Fraction of file available in the system
         //3) Least replication level
         //4) Weighted least-replication level
-
+        try {
+            this.startServerSocket();
+        } catch (IOException e) {
+            System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
+        }
+        
+        clearPeerFileLists();
+        
+        //Query all peers to build FileListInfo
+        messageSender.start();
+        QueryMessage.broadcast(messageSender);
+        
+        int numFiles;
+        
+    	/*
+    	 * The fraction of the file present locally (= chunks on this peer/total
+    	 * number chunks in the file)
+    	 */
+        float[] local;
+        
+    	/*
+    	 * The fraction of the file present in the system 
+    	 * (= chunks in the * system/total number chunks in the file) 
+    	 * (Note that if a chunk is present twice, 
+    	 * it doesn't get counted twice; this is simply intended to find out
+    	 * if we have the whole file in the system; 
+    	 * given that a file must be added at a peer, 
+    	 * think about why this number would ever not be 1.)
+    	 */
+        float[] system;
+        
+    	/*
+    	 * Sum by chunk over all peers; the minimum of this number is the least
+    	 * replicated chunk, and thus represents the least level of 
+    	 * replication of  the file
+    	 */        
+        int[] leastReplication;
+        
+    	/*
+    	 * Sum all chunks in all peers; 
+    	 * dived this by the number of chunks in the file; 
+    	 * this is the average level of replication of the file
+    	 */
+        float[] weightedLeastReplication;
+        
+        //calculate local[]
+        local = new float[files.size()];
+        int filenum = 0;
+        for(DistributedFile f : files) {
+        	int numTotalChunks = f.getChunks().length;
+            int completeChunks = numTotalChunks - f.getIsComplete().size();
+            
+    		local[filenum] = completeChunks/numTotalChunks;
+        	filenum++;
+    	}
+        
+        //TODO
+        //populate rest of status
+        List<String> fnames = new ArrayList<String>();
+        List<boolean[]> ca = new ArrayList<boolean[]>();
+        
+    	//cycle through all of the peerFileLists
+        for (PeerFileListInfo p: peerFileLists){
+        	//cycle through all of the files on each fileList
+        	for(String fn : p.getFileNames()){
+ 
+        	}
+        }
+        
+        
+        
+        
+        
         return ReturnCodes.OK;
     }
 
@@ -268,4 +354,12 @@ public class Peer {
     public boolean isClosing() {
         return closing;
     }
+
+	public void addPeerFileList(PeerFileListInfo peerFileList) {
+		this.peerFileLists.add(peerFileList);
+	}
+	
+	public void clearPeerFileLists(){
+		peerFileLists.clear();
+	}
 }

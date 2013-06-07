@@ -246,4 +246,8 @@ public class DistributedFile {
     public boolean isComplete() {
         return this.isComplete;
     }
+    
+    public Set<Integer> getIsComplete(){
+    	return incompleteChunks;
+    }
 }

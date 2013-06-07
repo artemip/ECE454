@@ -1,18 +1,15 @@
 package ece454p1;
 
-public class QueryMessage extends Message {
-    private Status status;
-
-    public QueryMessage(PeerDefinition recipient, Status status) {
+public class QueryMessage extends Message {		
+    
+	public QueryMessage(PeerDefinition recipient) {
         super(recipient);
-        this.status = status;
     }
-
-    public static void broadcast(MessageSender sender) {
+    
+    public static void broadcast(MessageSender msgSender) {
         for(PeerDefinition pd : PeersList.getPeers()) {
-	    //            sender.sendMessage(new QueryMessage(pd));
+        	msgSender.sendMessage(new QueryMessage(pd));
         }
     }
-
 }
 
