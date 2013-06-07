@@ -4,6 +4,9 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -76,55 +79,34 @@ public class Peer {
                                         }
                                     }
                                 }
-                            } else if(obj instanceof PullMessage) {
+                            }
+                            else if(obj instanceof PullMessage) {
                                 // Push all chunks to sender
                                 InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
                                 PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
 
                                 sendAllChunksToPeer(pd);
-                            } else if(obj instanceof QueryMessage) {
-                                //TODO: do this
-                                // Return query to sender
+                            }
+                            else if(obj instanceof QueryMessage) {
                                 InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
                                 PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
 
-                                //file = msg.getFile()
-                                //status = ....
-                                //populate query data
-                                //messageSender.sendMessage(new QueryMessage(pd,));
+                                // got query message, build PeerFileListInfo Message to send back
+                                PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
+                                FileListInfoMessage.sendBack(messageSender, pd, fListInfo);
+
+                            }
+                            else if (obj instanceof FileListInfoMessage){
+                                //list of fileListInfo to use in Query()
+                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
+                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
+
+                                FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
+                                addPeerFileList(fListInfoMsg.getPeerFileListInfo());
                             } else {
                                 System.err.println("Received message of unknown type");
                             }
-<<<<<<< HEAD
-                        } 
-                        else if(obj instanceof PullMessage) {
-                            // Push all chunks to sender
-                            InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
-                            sendAllChunksToPeer(pd);
-                        } 
-                        else if(obj instanceof QueryMessage) {
-                            InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-                            
-                            // got query message, build PeerFileListInfo Message to send back
-                            PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
-                            FileListInfoMessage.sendBack(messageSender, pd, fListInfo);                            
-                        
-                        } 
-                        else if (obj instanceof FileListInfoMessage){
-                        	//list of fileListInfo to use in Query()
-                        	InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                            PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-                            
-                            FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
-                            addPeerFileList(fListInfoMsg.getPeerFileListInfo());                            
-                        }
-                        else {
-=======
                         } catch (ClassNotFoundException e) {
->>>>>>> 9089cebc7abea458ec26e61a7c2036fba21dafe3
                             System.err.println("Received message of unknown type");
                         }
                     } catch (IOException e) {
@@ -155,12 +137,7 @@ public class Peer {
     
     public Peer(int port, MessageSender messageSender) {
         this.port = port;
-<<<<<<< HEAD
-        this.files = new ArrayList<DistributedFile>();
-        this.peerFileLists = new ArrayList<PeerFileListInfo>();
-=======
         this.files = new ConcurrentHashMap<String, DistributedFile>();
->>>>>>> 9089cebc7abea458ec26e61a7c2036fba21dafe3
         this.messageSender = messageSender;
 
         //Create directory in which to store files
@@ -190,8 +167,8 @@ public class Peer {
         }
     }
 
-    private List<DistributedFile> getDistributedFileList(){
-    	return this.files;
+    private Collection<DistributedFile> getDistributedFileList(){
+    	return this.files.values();
     }
     
     private void scanFiles() throws FileNotFoundException {
@@ -307,7 +284,7 @@ public class Peer {
         //calculate local[]
         local = new float[files.size()];
         int filenum = 0;
-        for(DistributedFile f : files) {
+        for(DistributedFile f : files.values()) {
         	int numTotalChunks = f.getChunks().length;
             int completeChunks = numTotalChunks - f.getIsComplete().size();
             
@@ -327,11 +304,7 @@ public class Peer {
  
         	}
         }
-        
-        
-        
-        
-        
+
         return ReturnCodes.OK;
     }
 

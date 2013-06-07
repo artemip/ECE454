@@ -1,8 +1,8 @@
 package ece454p1;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class PeerFileListInfo {
     private int numFiles;
@@ -17,7 +17,7 @@ public class PeerFileListInfo {
     private int numTotalChunks;
     private int numAvailableChunks;
     
-    public PeerFileListInfo(List<DistributedFile> files){
+    public PeerFileListInfo(Collection<DistributedFile> files){
     	this.numFiles = files.size();
         this.fileNames = new ArrayList<String>();
         this.chunkAvailabilityList = new ArrayList<boolean[]>();
