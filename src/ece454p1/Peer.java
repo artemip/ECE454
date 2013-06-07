@@ -60,6 +60,7 @@ public class Peer {
                                 ChunkMessage msg = (ChunkMessage)obj;
                                 Chunk chunk = msg.getChunk();
 
+<<<<<<< HEAD
                                 // Read the chunk. Now find (or create) the appropriate file and write the chunk
                                 DistributedFile distFile = getFileForChunk(chunk);
 
@@ -68,6 +69,16 @@ public class Peer {
                                     distFile = new DistributedFile(chunk.getMetadata());
                                     files.put(distFile.getFileName(), distFile);
                                     distFile.addChunk(chunk);
+=======
+                            if(distFile == null) {
+                                // No file for this chunk
+                                distFile = new DistributedFile(chunk.getMetadata());
+                                files.put(distFile.getFileName(), distFile);
+                                distFile.addChunk(chunk);
+                            } else {
+                                if(distFile.isComplete()) {
+                                    // Ignore this chunk
+>>>>>>> 65fe4090289c4f555505ebe18a01b283892e3a9c
                                 } else {
                                     if(distFile.isComplete()) {
                                         // Ignore this chunk
@@ -99,6 +110,7 @@ public class Peer {
                         } catch (ClassNotFoundException e) {
                             System.err.println("Received message of unknown type");
                         }
+<<<<<<< HEAD
                     } catch (IOException e) {
                         System.err.println("Problem reading an object from the socket: " + e);
                     } finally {
@@ -114,6 +126,23 @@ public class Peer {
                             System.err.println("Problems closing socket stream: " + e);
                         }
                         */
+=======
+                    } catch (ClassNotFoundException e) {
+                        System.err.println("Received message of unknown type");
+                    }
+                } catch (IOException e) {
+                    System.err.println("Problem reading an object from the socket: " + e);
+                } finally {
+                    try {
+                        if(chunkInputStream != null)
+                            chunkInputStream.close();
+
+                        if(socketInputStream != null)
+                            socketInputStream.close();
+
+                    } catch (IOException e) {
+                        System.err.println("Problems closing socket stream: " + e);
+>>>>>>> 65fe4090289c4f555505ebe18a01b283892e3a9c
                     }
                 }
             }
@@ -187,7 +216,7 @@ public class Peer {
         serverHandlerWorkerPool = Executors.newFixedThreadPool(Config.MAX_PEERS - 1);
 
         socketAcceptorThread = new Thread(new SocketAcceptor());
-        socketAcceptorThread.run();
+        socketAcceptorThread.start();
     }
 
 	public int insert(String filename) {

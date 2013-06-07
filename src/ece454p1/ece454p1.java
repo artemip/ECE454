@@ -16,7 +16,6 @@ public class ece454p1 {
         MessageSender messageSender = new MessageSender();
         Peer peer = new Peer(port, messageSender);
 
-        //TODO: Commandline interface
         boolean  loop = true;
         String userInput = "";
         

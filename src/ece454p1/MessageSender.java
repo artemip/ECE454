@@ -30,8 +30,9 @@ public class MessageSender extends Thread {
                 // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
                 for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
                     try {
-                        if(peerSocket == null || peerSocket.isClosed()) {
+                        if(peerSocket == null || peerSocket.isClosed() || !peerSocket.isConnected()) {
                             peerSocket = new Socket(recipient.getIPAddress(), recipient.getPort());
+                            peerSocketsMap.put(recipient, peerSocket); //Save new connection
                         }
 
                         socketOutputStream = peerSocket.getOutputStream();
@@ -72,6 +73,7 @@ public class MessageSender extends Thread {
 
     public MessageSender() {
         peerSocketsMap = new ConcurrentHashMap<PeerDefinition, Socket>();
+        messagesToSend = new ConcurrentLinkedQueue<Message>();
     }
 
     @Override
@@ -83,7 +85,8 @@ public class MessageSender extends Thread {
             try {
                 s = new Socket(pd.getIPAddress(), pd.getPort());
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
+                s = new Socket();
             }
 
             peerSocketsMap.put(pd, s);
@@ -106,7 +109,7 @@ public class MessageSender extends Thread {
                     }
                 }
 
-                senderThreadPool.execute(new MessageSender.MessageThread(msg));
+                senderThreadPool.submit(new MessageSender.MessageThread(msg));
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
