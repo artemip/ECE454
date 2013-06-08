@@ -1,8 +1,9 @@
 package ece454p1;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
-public class Chunk implements Serializable {
+public class Chunk implements Serializable, Comparable {
     public static final int MAX_CHUNK_SIZE = 65536;
     private int id;
     private byte[] data;
@@ -14,7 +15,7 @@ public class Chunk implements Serializable {
         }
 
         this.id = id;
-        this.data = data;
+        this.data = Arrays.copyOfRange(data, 0, size);
         this.metadata = metadata;
     }
 
@@ -28,5 +29,12 @@ public class Chunk implements Serializable {
 
     public IncompleteFileMetadata getMetadata() {
         return this.metadata;
+    }
+
+    @Override
+    public int compareTo(Object anotherChunk) {
+        Integer thisId = new Integer(this.getId());
+        Integer otherId = new Integer(((Chunk)anotherChunk).getId());
+        return thisId.compareTo(otherId);
     }
 }

@@ -39,24 +39,26 @@ public class Peer {
 
     private class SocketHandlerThread implements Runnable {
         private final Socket socket;
+        private InputStream socketInputStream = null;
+        private ObjectInputStream messageInputStream = null;
 
         public SocketHandlerThread(Socket socket) {
             this.socket = socket;
+            try {
+                socketInputStream = this.socket.getInputStream();
+                messageInputStream = new ObjectInputStream(socketInputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void run() {
-            InputStream socketInputStream = null;
-            ObjectInputStream chunkInputStream = null;
-
-            synchronized (this.socket) {
-                while(!this.socket.isClosed()) {
-                    try {
-                        socketInputStream = this.socket.getInputStream();
-                        chunkInputStream = new ObjectInputStream(socketInputStream);
-
+            try {
+                synchronized (this.socket) {
+                    while(SocketUtils.isSocketOpen(this.socket)) {
                         try {
-                            Object obj = chunkInputStream.readObject();
+                            Object obj = messageInputStream.readObject();
 
                             if(obj instanceof ChunkMessage) {
                                 ChunkMessage msg = (ChunkMessage)obj;
@@ -108,18 +110,20 @@ public class Peer {
                             }
                         } catch (ClassNotFoundException e) {
                             System.err.println("Received message of unknown type");
-                        }
-                    } catch (IOException e) {
-                        System.err.println("Problem reading an object from the socket: " + e);
-                    } finally {
-                        try {
-                            if(chunkInputStream != null)
-                                chunkInputStream.close();
-
                         } catch (IOException e) {
-                            System.err.println("Problems closing object input stream: " + e);
+                            System.err.println("Problems reading object from socket: " + e);
+                            e.printStackTrace();
+                            return;
                         }
                     }
+                }
+            } finally {
+                try {
+                    messageInputStream.close();
+                    socketInputStream.close();
+                    socket.close();
+                } catch (IOException e) {
+                    System.err.println("Problems closing object input stream: " + e);
                 }
             }
         }
@@ -201,6 +205,7 @@ public class Peer {
     }
 
 	public int insert(String filename) {
+
         File file = new File(filename);
         if (!file.exists()) {
             return ReturnCodes.FILE_NOT_FOUND;

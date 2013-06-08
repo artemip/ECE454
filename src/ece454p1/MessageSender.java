@@ -1,31 +1,29 @@
 package ece454p1;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class MessageSender extends Thread {
-
     private class SocketStream {
-        private Socket socket;
-        private ObjectOutputStream objectOutputStream;
+        private Socket socket = null;
+        private ObjectOutputStream messageOutputStream = null;
+        private OutputStream socketOutputStream = null;
 
         private void getOutputStreamFromSocket() {
             try {
-                this.objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
+                socketOutputStream = socket.getOutputStream();
+                messageOutputStream = new ObjectOutputStream(socketOutputStream);
             } catch (IOException e) {
-                this.objectOutputStream = null;
+                e.printStackTrace();
             }
         }
 
         public SocketStream(Socket socket) {
             this.socket = socket;
-            getOutputStreamFromSocket();
+            if(SocketUtils.isSocketOpen(this.socket))
+                getOutputStreamFromSocket();
         }
 
         public void resetSocket(PeerDefinition server) {
@@ -41,8 +39,8 @@ public class MessageSender extends Thread {
             return socket;
         }
 
-        public ObjectOutputStream getObjectOutputStream() {
-            return objectOutputStream;
+        public void writeMessage(Message message) throws IOException {
+            messageOutputStream.writeObject(message);
         }
     }
 
@@ -57,36 +55,22 @@ public class MessageSender extends Thread {
         public void run() {
             PeerDefinition recipient = message.getRecipient();
             SocketStream peerSocketStream = peerSocketsMap.get(recipient);
+            Socket peerSocket = peerSocketStream.getSocket();
 
-            synchronized (peerSocketStream.getSocket()) {
-                ObjectOutputStream chunkOutputStream = null;
-
-                // Attempt to connect to and send a socket a message MAX_SEND_RETRIES times
-                for(int i = 0; i < Config.MAX_SEND_RETRIES; ++i) {
-                    try {
-                        Socket peerSocket = peerSocketStream.getSocket();
-                        while(peerSocket == null || peerSocket.isClosed() || !peerSocket.isConnected()) {
-                            peerSocketStream.resetSocket(recipient); //Re-connect
-
-                            //Last try, didn't work
-                            if(++i == Config.MAX_SEND_RETRIES - 1) {
-                                return;
-                            }
-                        }
-
-                        chunkOutputStream = peerSocketStream.getObjectOutputStream();
-
-                        chunkOutputStream.writeObject(message);
-                        chunkOutputStream.flush();
-                        i = Config.MAX_SEND_RETRIES;
-                    } catch (IOException e) {
-                        System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
-
-                        //Last try, didn't work
-                        if(i == Config.MAX_SEND_RETRIES - 1) {
-                            return;
-                        }
+            synchronized (peerSocket) {
+                // Attempt to connect to and send a socket a message
+                try {
+                    if(!SocketUtils.isSocketOpen(peerSocket)) {
+                        peerSocketStream.resetSocket(recipient); //Re-connect
                     }
+
+                    if(SocketUtils.isSocketOpen(peerSocket))
+                        peerSocketStream.writeMessage(message);
+                } catch (IOException e) {
+                    System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
+
+                    // Reset after unsuccessful connection attempt
+                    peerSocketStream.resetSocket(recipient);
                 }
             }
         }
@@ -112,7 +96,6 @@ public class MessageSender extends Thread {
                 s = new Socket(pd.getIPAddress(), pd.getPort());
             } catch (IOException e) {
                 System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
-                s = new Socket();
             }
 
             peerSocketsMap.put(pd, new SocketStream(s));
@@ -138,7 +121,7 @@ public class MessageSender extends Thread {
                 senderThreadPool.submit(new MessageSender.MessageThread(msg));
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            System.err.println("Exiting work queue loop");
         }
     }
 
@@ -157,7 +140,11 @@ public class MessageSender extends Thread {
         this.interrupt();
 
         if(senderThreadPool != null) {
-            senderThreadPool.shutdown();
+            try {
+                senderThreadPool.awaitTermination(1L, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

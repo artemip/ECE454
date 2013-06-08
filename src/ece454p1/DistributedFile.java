@@ -104,6 +104,11 @@ public class DistributedFile {
 
             this.chunks = new Chunk[metadata.getChunkAvailability().length];
 
+            this.incompleteChunks = new HashSet<Integer>();
+            for(int i = 0; i < this.chunks.length; ++i) {
+                this.incompleteChunks.add(i);
+            }
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -166,6 +171,7 @@ public class DistributedFile {
                         this.incompleteChunks.add(index);
                     }
 
+                    readChunk = new byte[Chunk.MAX_CHUNK_SIZE];
                     index++;
                 }
             }
@@ -179,12 +185,13 @@ public class DistributedFile {
     public void addChunk(Chunk chunk) {
         System.out.println("Adding chunk with id " + chunk.getId() + " to file " + chunk.getMetadata().getFileName());
 
-        if(this.chunks[chunk.getId()] != null) {
+        if(this.chunks[chunk.getId()] == null) {
             this.chunks[chunk.getId()] = chunk;
             this.incompleteChunks.remove(chunk.getId());
 
             //Complete file!
             if(this.incompleteChunks.size() == 0) {
+                System.out.println("File is complete. Saving to " + chunk.getMetadata().getFileName());
                 this.isComplete = true;
                 save();
             } else {
@@ -193,6 +200,7 @@ public class DistributedFile {
                 int completeChunks = numChunks - this.incompleteChunks.size();
 
                 if(completeChunks - lastSync > (numChunks * 0.2)) {
+                    System.out.println("File is " + (int)((completeChunks / (double)(numChunks)) * 100) + "% complete. Flushing snapshot to " + chunk.getMetadata().getFileName());
                     lastSync = completeChunks;
                     save();
                 }
@@ -201,13 +209,14 @@ public class DistributedFile {
     }
 
     public void save() {
+        FileOutputStream fos = null;
         try {
             File f = new File(this.fileName);
 
             if(!f.exists())
                 f.createNewFile();
 
-            FileOutputStream fos = new FileOutputStream(this.fileName);
+            fos = new FileOutputStream(this.fileName);
 
             this.isComplete = this.incompleteChunks.isEmpty();
 
@@ -238,6 +247,14 @@ public class DistributedFile {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if(fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

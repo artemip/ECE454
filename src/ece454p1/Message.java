@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Message implements Serializable {
     protected PeerDefinition recipient;
 
-    public Message() { }
+    protected Message() { }
 
     public Message(PeerDefinition recipient) {
         this.recipient = recipient;

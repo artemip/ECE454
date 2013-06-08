@@ -61,6 +61,8 @@ public class ece454p1 {
 	    		peer.leave();
 	    	}
 	    	else if (userInput.equals("5")){
+                peer.close();
+                messageSender.shutdown();
 	    		loop = false;
 	    	}
 	    	else {
