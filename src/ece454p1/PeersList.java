@@ -23,7 +23,7 @@ public class PeersList {
 	 * @param peersFile
 	 * @return
 	 */
-	public static int initialize(String peersFile, int peerId) {
+	public static int initialize(String peersFile, int thisPeerId) {
         peers = new ArrayList<PeerDefinition>();
 
         BufferedReader fileReader;
@@ -39,8 +39,10 @@ public class PeersList {
 
             while((line = fileReader.readLine()) != null) {
                 // Only add *other* peers
-                if(index++ != peerId)
-                    peers.add(PeerDefinition.fromString(line));
+                if(index != thisPeerId)
+                    peers.add(PeerDefinition.fromString(line, index));
+
+                index++;
             }
 
             fileReader.close();
@@ -53,11 +55,9 @@ public class PeersList {
         return ReturnCodes.OK;
     }
 
-    public static PeerDefinition getPeerByAddress(String ipAddress, int port) {
-        String fullAddress = ipAddress + ":" + port;
-
+    public static PeerDefinition getPeerById(int peerId) {
         for(PeerDefinition pd : peers) {
-            if(pd.getFullAddress() == fullAddress)
+            if(pd.getId() == peerId)
                 return pd;
         }
 

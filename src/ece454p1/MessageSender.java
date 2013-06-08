@@ -1,29 +1,63 @@
 package ece454p1;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.*;
 
 public class MessageSender extends Thread {
-    private class SocketStream {
+    private class SocketMessagingThread extends Thread {
         private Socket socket = null;
         private ObjectOutputStream messageOutputStream = null;
         private OutputStream socketOutputStream = null;
+        private LinkedBlockingQueue<Message> messageQueue = null;
+        private PeerDefinition recipient;
+        private boolean finished = false;
 
-        private void getOutputStreamFromSocket() {
+        public SocketMessagingThread(Socket socket, PeerDefinition recipient) {
+            this.socket = socket;
+            this.recipient = recipient;
+            this.messageQueue = new LinkedBlockingQueue<Message>();
+
+            if(SocketUtils.isSocketOpen(this.socket))
+                getOutputStreamFromSocket();
+        }
+
+        @Override
+        public void run() {
             try {
-                socketOutputStream = socket.getOutputStream();
-                messageOutputStream = new ObjectOutputStream(socketOutputStream);
-            } catch (IOException e) {
+                while(!finished) {
+                    Message msg = null;
+                    synchronized (this) {
+                        while((msg = messageQueue.poll()) == null) {
+                            this.wait();
+                        }
+                    }
+
+                    // Attempt to connect to and send a socket a message
+                    try {
+                        if(!SocketUtils.isSocketOpen(this.socket)) {
+                            resetSocket(recipient); //Re-connect
+                        }
+
+                        if(SocketUtils.isSocketOpen(this.socket))
+                            messageOutputStream.writeObject(msg);
+                    } catch (IOException e) {
+                        System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
+
+                        // Reset after unsuccessful connection attempt
+                        resetSocket(recipient);
+                    }
+                }
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
-        public SocketStream(Socket socket) {
-            this.socket = socket;
-            if(SocketUtils.isSocketOpen(this.socket))
-                getOutputStreamFromSocket();
+        public Socket getSocket() {
+            return socket;
         }
 
         public void resetSocket(PeerDefinition server) {
@@ -35,61 +69,43 @@ public class MessageSender extends Thread {
             }
         }
 
-        public Socket getSocket() {
-            return socket;
+        public void writeMessage(Message message) {
+            messageQueue.add(message);
+            this.wakeup();
         }
 
-        public void writeMessage(Message message) throws IOException {
-            messageOutputStream.writeObject(message);
-        }
-    }
-
-    private class MessageThread implements Runnable {
-        private Message message;
-
-        public MessageThread(Message message) {
-            this.message = message;
+        public void wakeup() {
+            synchronized (this) {
+                this.notifyAll();
+            }
         }
 
-        @Override
-        public void run() {
-            PeerDefinition recipient = message.getRecipient();
-            SocketStream peerSocketStream = peerSocketsMap.get(recipient);
-            Socket peerSocket = peerSocketStream.getSocket();
+        public void shutdown() {
+            this.finished = true;
+            wakeup();
+        }
 
-            synchronized (peerSocket) {
-                // Attempt to connect to and send a socket a message
-                try {
-                    if(!SocketUtils.isSocketOpen(peerSocket)) {
-                        peerSocketStream.resetSocket(recipient); //Re-connect
-                    }
-
-                    if(SocketUtils.isSocketOpen(peerSocket))
-                        peerSocketStream.writeMessage(message);
-                } catch (IOException e) {
-                    System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
-
-                    // Reset after unsuccessful connection attempt
-                    peerSocketStream.resetSocket(recipient);
-                }
+        private void getOutputStreamFromSocket() {
+            try {
+                socketOutputStream = socket.getOutputStream();
+                messageOutputStream = new ObjectOutputStream(socketOutputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
     private ConcurrentLinkedQueue<Message> messagesToSend;
-    private ExecutorService senderThreadPool;
-    private final Map<PeerDefinition, SocketStream> peerSocketsMap;
+    private final Map<PeerDefinition, SocketMessagingThread> peerSocketsMap;
     private boolean stopSending = false;
 
     public MessageSender() {
-        peerSocketsMap = new ConcurrentHashMap<PeerDefinition, SocketStream>();
+        peerSocketsMap = new ConcurrentHashMap<PeerDefinition, SocketMessagingThread>();
         messagesToSend = new ConcurrentLinkedQueue<Message>();
     }
 
     @Override
     public void start() {
-        senderThreadPool = Executors.newFixedThreadPool(Config.NUM_USABLE_CORES);
-
         for(PeerDefinition pd : PeersList.getPeers()) {
             Socket s = null;
             try {
@@ -98,7 +114,9 @@ public class MessageSender extends Thread {
                 System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
             }
 
-            peerSocketsMap.put(pd, new SocketStream(s));
+            SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
+            peerSocketsMap.put(pd, msgThread);
+            msgThread.start();
         }
 
         super.start();
@@ -118,7 +136,7 @@ public class MessageSender extends Thread {
                     }
                 }
 
-                senderThreadPool.submit(new MessageSender.MessageThread(msg));
+                peerSocketsMap.get(msg.getRecipient()).writeMessage(msg);
             }
         } catch (InterruptedException e) {
             System.err.println("Exiting work queue loop");
@@ -139,12 +157,8 @@ public class MessageSender extends Thread {
         wakeup();
         this.interrupt();
 
-        if(senderThreadPool != null) {
-            try {
-                senderThreadPool.awaitTermination(1L, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for(SocketMessagingThread t : this.peerSocketsMap.values()) {
+            t.shutdown();
         }
     }
 }

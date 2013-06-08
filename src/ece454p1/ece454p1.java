@@ -10,11 +10,11 @@ public class ece454p1 {
         int port = Integer.parseInt(args[1]);
         String peersFile = args[2];
 
-        System.out.println("Starting server on port " + port + " using peers file at " + peersFile);
+        System.out.println("Starting server with id " + peerId + " on port " + port + " using peers file at " + peersFile);
 
         PeersList.initialize(peersFile, peerId);
         MessageSender messageSender = new MessageSender();
-        Peer peer = new Peer(port, messageSender);
+        Peer peer = new Peer(peerId, port, messageSender);
 
         boolean  loop = true;
         String userInput = "";
@@ -69,5 +69,7 @@ public class ece454p1 {
 	    		System.out.println("Invalid input");
 	    	}
 	    }
+
+        System.exit(0);
     }
 }

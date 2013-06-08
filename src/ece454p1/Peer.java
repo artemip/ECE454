@@ -1,7 +1,6 @@
 package ece454p1;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -56,11 +55,22 @@ public class Peer {
         public void run() {
             try {
                 synchronized (this.socket) {
+                    PeerDefinition sender = null;
+
                     while(SocketUtils.isSocketOpen(this.socket)) {
                         try {
                             Object obj = messageInputStream.readObject();
 
+                            if(sender == null) {
+                                sender = PeersList.getPeerById(((Message)obj).getSenderId());
+                                if(sender == null) {
+                                    System.err.println("Opened socket connection with unknown host. Closing connection...");
+                                    return;
+                                }
+                            }
+
                             if(obj instanceof ChunkMessage) {
+                                System.out.println("Received chunk from " + sender.getFullAddress());
                                 ChunkMessage msg = (ChunkMessage)obj;
                                 Chunk chunk = msg.getChunk();
 
@@ -75,6 +85,7 @@ public class Peer {
                                 } else {
                                     if(distFile.isComplete()) {
                                         // Ignore this chunk
+                                        System.out.println("Ignoring chunk...");
                                     } else {
                                         if(!distFile.hasChunk(chunk.getId())) {
                                             distFile.addChunk(chunk);
@@ -84,25 +95,18 @@ public class Peer {
                             }
                             else if(obj instanceof PullMessage) {
                                 // Push all chunks to sender
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
-                                sendAllChunksToPeer(pd);
+                                System.out.println("Received pull request from " + sender.getFullAddress());
+                                sendAllChunksToPeer(sender);
                             }
                             else if(obj instanceof QueryMessage) {
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
                                 // got query message, build PeerFileListInfo Message to send back
+                                System.out.println("Received query message from " + sender.getFullAddress());
                                 PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
-                                FileListInfoMessage.sendBack(messageSender, pd, fListInfo);
-
+                                messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
                             }
                             else if (obj instanceof FileListInfoMessage){
                                 //list of fileListInfo to use in Query()
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
+                                System.out.println("Received file info request message from " + sender.getFullAddress());
                                 FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
                                 addPeerFileList(fListInfoMsg.getPeerFileListInfo());
                             } else {
@@ -130,6 +134,7 @@ public class Peer {
     }
 
     private final int port;
+    private final int id;
     private ServerSocket serverSocket;
     private Thread socketAcceptorThread;
     private ExecutorService serverHandlerWorkerPool;
@@ -139,7 +144,8 @@ public class Peer {
     private List<PeerFileListInfo> peerFileLists;
     private int peerResponseCounter;
     
-    public Peer(int port, MessageSender messageSender) {
+    public Peer(int id, int port, MessageSender messageSender) {
+        this.id = id;
         this.port = port;
         this.files = new ConcurrentHashMap<String, DistributedFile>();
         this.messageSender = messageSender;
@@ -158,7 +164,7 @@ public class Peer {
     private void broadcastFiles() {
         for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
-                ChunkMessage.broadcast(c, messageSender);
+                ChunkMessage.broadcast(c, messageSender, id);
             }
         }
     }
@@ -166,7 +172,7 @@ public class Peer {
     private void sendAllChunksToPeer(PeerDefinition recipient) {
         for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
-                messageSender.sendMessage(new ChunkMessage(c, recipient));
+                messageSender.sendMessage(new ChunkMessage(c, recipient, id));
             }
         }
     }
@@ -229,7 +235,7 @@ public class Peer {
 
         // Send the chunks to all connected peers
         for(Chunk c : newFile.getChunks())
-            ChunkMessage.broadcast(c, messageSender);
+            ChunkMessage.broadcast(c, messageSender, id);
 
         return ReturnCodes.OK;
     }
@@ -251,7 +257,7 @@ public class Peer {
         
         //Query all peers to build FileListInfo
         messageSender.start();
-        QueryMessage.broadcast(messageSender);
+        QueryMessage.broadcast(messageSender, id);
         
         int numFiles;
         
@@ -296,8 +302,7 @@ public class Peer {
     		local[filenum] = completeChunks/numTotalChunks;
         	filenum++;
     	}
-        
-        //TODO
+
         //populate rest of status
         List<String> fnames = new ArrayList<String>();
         List<boolean[]> ca = new ArrayList<boolean[]>();
@@ -306,7 +311,7 @@ public class Peer {
         for (PeerFileListInfo p: peerFileLists){
         	//cycle through all of the files on each fileList
         	for(String fn : p.getFileNames()){
- 
+
         	}
         }
 
@@ -329,7 +334,7 @@ public class Peer {
         broadcastFiles();
 
         // Pull files
-        PullMessage.broadcast(messageSender);
+        PullMessage.broadcast(messageSender, id);
 
         return ReturnCodes.OK;
     }
@@ -341,6 +346,10 @@ public class Peer {
         close();
         messageSender.shutdown();
         return ReturnCodes.OK;
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     public void close() {
