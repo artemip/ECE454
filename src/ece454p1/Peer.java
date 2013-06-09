@@ -323,6 +323,9 @@ public class Peer {
 	 * parameter
 	 */
 	public int join() {
+        if(messageSender == null)
+            messageSender = new MessageSender();
+
         try {
             this.startServerSocket();
         } catch (IOException e) {
@@ -343,17 +346,20 @@ public class Peer {
         //Inform all peers of absence
         //Preferred: push out rare file chunks before leaving
         //Close all sockets
-        close();
         messageSender.shutdown();
+        closing = true;
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        serverSocket = null;
+        messageSender = null;
         return ReturnCodes.OK;
     }
 
     public int getId() {
         return this.id;
-    }
-
-    public void close() {
-        closing = true;
     }
 
     public boolean isClosing() {

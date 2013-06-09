@@ -45,8 +45,17 @@ public class ece454p1 {
 		    	catch(IOException e){
 		    		e.printStackTrace();
 		    	}
-	    		peer.insert(fname);
-	    		
+
+                int retCode = peer.insert(fname);
+                switch(retCode) {
+                    case ReturnCodes.FILE_NOT_FOUND:
+                        System.err.println("File " + fname + " not found.");
+                        break;
+                    case ReturnCodes.FILE_COPY_ERR:
+                        System.err.println("Could not copy file " + fname + " over to local directory.");
+                        break;
+                    default:
+                }
 	    	}
 	    	//Query
 	    	else if (userInput.equals("2")){
@@ -61,7 +70,7 @@ public class ece454p1 {
 	    		peer.leave();
 	    	}
 	    	else if (userInput.equals("5")){
-                peer.close();
+                peer.leave();
                 messageSender.shutdown();
 	    		loop = false;
 	    	}
