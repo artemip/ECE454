@@ -10,11 +10,11 @@ public class ece454p1 {
         int port = Integer.parseInt(args[1]);
         String peersFile = args[2];
 
-        System.out.println("Starting server on port " + port + " using peers file at " + peersFile);
+        System.out.println("Starting server with id " + peerId + " on port " + port + " using peers file at " + peersFile);
 
         PeersList.initialize(peersFile, peerId);
         MessageSender messageSender = new MessageSender();
-        Peer peer = new Peer(port, messageSender);
+        Peer peer = new Peer(peerId, port, messageSender);
 
         boolean  loop = true;
         String userInput = "";
@@ -45,8 +45,17 @@ public class ece454p1 {
 		    	catch(IOException e){
 		    		e.printStackTrace();
 		    	}
-	    		peer.insert(fname);
-	    		
+
+                int retCode = peer.insert(fname);
+                switch(retCode) {
+                    case ReturnCodes.FILE_NOT_FOUND:
+                        System.err.println("File " + fname + " not found.");
+                        break;
+                    case ReturnCodes.FILE_COPY_ERR:
+                        System.err.println("Could not copy file " + fname + " over to local directory.");
+                        break;
+                    default:
+                }
 	    	}
 	    	//Query
 	    	else if (userInput.equals("2")){
@@ -73,7 +82,7 @@ public class ece454p1 {
 	    		peer.leave();
 	    	}
 	    	else if (userInput.equals("5")){
-                peer.close();
+                peer.leave();
                 messageSender.shutdown();
 	    		loop = false;
 	    	}
@@ -81,5 +90,7 @@ public class ece454p1 {
 	    		System.out.println("Invalid input");
 	    	}
 	    }
+
+        System.exit(0);
     }
 }

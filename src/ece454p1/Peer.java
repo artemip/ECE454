@@ -1,7 +1,6 @@
 package ece454p1;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collection;
@@ -56,11 +55,22 @@ public class Peer {
         public void run() {
             try {
                 synchronized (this.socket) {
+                    PeerDefinition sender = null;
+
                     while(SocketUtils.isSocketOpen(this.socket)) {
                         try {
                             Object obj = messageInputStream.readObject();
 
+                            if(sender == null) {
+                                sender = PeersList.getPeerById(((Message)obj).getSenderId());
+                                if(sender == null) {
+                                    System.err.println("Opened socket connection with unknown host. Closing connection...");
+                                    return;
+                                }
+                            }
+
                             if(obj instanceof ChunkMessage) {
+                                System.out.println("Received chunk from " + sender.getFullAddress());
                                 ChunkMessage msg = (ChunkMessage)obj;
                                 Chunk chunk = msg.getChunk();
 
@@ -75,6 +85,7 @@ public class Peer {
                                 } else {
                                     if(distFile.isComplete()) {
                                         // Ignore this chunk
+                                        System.out.println("Ignoring chunk...");
                                     } else {
                                         if(!distFile.hasChunk(chunk.getId())) {
                                             distFile.addChunk(chunk);
@@ -84,27 +95,23 @@ public class Peer {
                             }
                             else if(obj instanceof PullMessage) {
                                 // Push all chunks to sender
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
-                                sendAllChunksToPeer(pd);
+                                System.out.println("Received pull request from " + sender.getFullAddress());
+                                sendAllChunksToPeer(sender);
                             }
                             else if(obj instanceof QueryMessage) {
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
                                 // got query message, build PeerFileListInfo Message to send back
+                                System.out.println("Received query message from " + sender.getFullAddress());
                                 PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
-                                FileListInfoMessage.replyToQuery(messageSender, pd, fListInfo);
+                                int sernderId = ((Message)obj).getSenderId();
+                                FileListInfoMessage.replyToQuery(messageSender, sender, sernderId, fListInfo);
 
+                                messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
                             }
                             else if (obj instanceof FileListInfoMessage){
                                 //list of fileListInfo to use in Query()
-                                InetSocketAddress addr = (InetSocketAddress)socket.getRemoteSocketAddress();
-                                PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
-
+                                System.out.println("Received file info request message from " + sender.getFullAddress());
                                 FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
-                                addPeerFileList(pd, fListInfoMsg.getPeerFileListInfo());
+                                addPeerFileList(sender, fListInfoMsg.getPeerFileListInfo());
                             } else {
                                 System.err.println("Received message of unknown type");
                             }
@@ -130,6 +137,7 @@ public class Peer {
     }
 
     private final int port;
+    private final int id;
     private ServerSocket serverSocket;
     private Thread socketAcceptorThread;
     private ExecutorService serverHandlerWorkerPool;
@@ -139,7 +147,8 @@ public class Peer {
     private Map<PeerDefinition, PeerFileListInfo> peerFileLists;
     private Hashtable<String, int[]> globalFileList;
     
-    public Peer(int port, MessageSender messageSender) {
+    public Peer(int id, int port, MessageSender messageSender) {
+        this.id = id;
         this.port = port;
         this.files = new ConcurrentHashMap<String, DistributedFile>();
         this.peerFileLists = new ConcurrentHashMap<PeerDefinition, PeerFileListInfo>();
@@ -160,7 +169,7 @@ public class Peer {
     private void broadcastFiles() {
         for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
-                ChunkMessage.broadcast(c, messageSender);
+                ChunkMessage.broadcast(c, messageSender, id);
             }
         }
     }
@@ -168,7 +177,7 @@ public class Peer {
     private void sendAllChunksToPeer(PeerDefinition recipient) {
         for(DistributedFile f : files.values()) {
             for(Chunk c : f.getChunks()) {
-                messageSender.sendMessage(new ChunkMessage(c, recipient));
+                messageSender.sendMessage(new ChunkMessage(c, recipient, id));
             }
         }
     }
@@ -231,7 +240,7 @@ public class Peer {
 
         // Send the chunks to all connected peers
         for(Chunk c : newFile.getChunks())
-            ChunkMessage.broadcast(c, messageSender);
+            ChunkMessage.broadcast(c, messageSender, id);
 
         return ReturnCodes.OK;
     }
@@ -249,7 +258,7 @@ public class Peer {
         
         //Query all peers to build FileListInfo
         //messageSender.start();
-        QueryMessage.broadcast(messageSender);
+        QueryMessage.broadcast(messageSender, this.id);
         System.out.println("Query sent");
                 
         //first populate global list with local files
@@ -310,6 +319,9 @@ public class Peer {
 	 * parameter
 	 */
 	public int join() {
+        if(messageSender == null)
+            messageSender = new MessageSender();
+
         try {
             this.startServerSocket();
         } catch (IOException e) {
@@ -321,7 +333,7 @@ public class Peer {
         broadcastFiles();
 
         // Pull files
-        PullMessage.broadcast(messageSender);
+        PullMessage.broadcast(messageSender, id);
 
         return ReturnCodes.OK;
     }
@@ -330,13 +342,20 @@ public class Peer {
         //Inform all peers of absence
         //Preferred: push out rare file chunks before leaving
         //Close all sockets
-        close();
         messageSender.shutdown();
+        closing = true;
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        serverSocket = null;
+        messageSender = null;
         return ReturnCodes.OK;
     }
 
-    public void close() {
-        closing = true;
+    public int getId() {
+        return this.id;
     }
 
     public boolean isClosing() {
