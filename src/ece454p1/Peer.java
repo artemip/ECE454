@@ -29,7 +29,7 @@ public class Peer {
                 serverHandlerWorkerPool.awaitTermination(5, TimeUnit.SECONDS);
                 serverSocket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Error occurred when waiting for a socket connection: " + e);
             } catch (InterruptedException e) {
                 serverHandlerWorkerPool.shutdownNow();
             }
@@ -116,8 +116,7 @@ public class Peer {
                         } catch (ClassNotFoundException e) {
                             System.err.println("Received message of unknown type");
                         } catch (IOException e) {
-                            System.err.println("Problems reading object from socket: " + e);
-                            e.printStackTrace();
+                            System.err.println("Problems reading object from socket - Peer is likely down: " + e);
                             return;
                         }
                     }
