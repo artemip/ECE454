@@ -274,7 +274,7 @@ public class DistributedFile {
         return this.isComplete;
     }
     
-    public Set<Integer> getIsComplete(){
+    public Set<Integer> getIncompleteChunks(){
     	return incompleteChunks;
     }
 }

@@ -1,5 +1,7 @@
 package ece454p1;
 
+import java.util.Hashtable;
+
 /**
  * Status is the class that you populate with status data on the state of
  * replication in this peer and its knowledge of the replication level within
@@ -23,7 +25,7 @@ public class Status {
 	 * The fraction of the file present locally (= chunks on this peer/total
 	 * number chunks in the file)
 	 */
-	private float[] local;
+	private Hashtable<String, Float> local;
 
 	/*
 	 * The fraction of the file present in the system 
@@ -34,46 +36,64 @@ public class Status {
 	 * given that a file must be added at a peer, 
 	 * think about why this number would ever not be 1.)
 	 */
-	private float[] system;
+	private Hashtable<String, Float> system;
 
 	/*
 	 * Sum by chunk over all peers; the minimum of this number is the least
 	 * replicated chunk, and thus represents the least level of 
 	 * replication of  the file
 	 */
-	private int[] leastReplication;
+	private Hashtable<String, Integer> leastReplication;
 
 	/*
 	 * Sum all chunks in all peers; 
 	 * dived this by the number of chunks in the file; 
 	 * this is the average level of replication of the file
 	 */
-	private float[] weightedLeastReplication;
+	private Hashtable<String, Float> weightedLeastReplication;
 	
+	public Status(){
+		this.numFiles = 0;
+		this.local = new Hashtable<String, Float>();
+		this.system = new Hashtable<String, Float>();
+		this.leastReplication = new Hashtable<String, Integer>();
+		this.weightedLeastReplication = new Hashtable<String, Float>();
+}
 	
-	public int numberOfFiles(){
+	public int getNumFiles(){
 		return numFiles;
 	}
 
-	/*Use -1 to indicate if the file requested is not present*/
-	public float fractionPresentLocally(int fileNumber){
-		return local[fileNumber];
-	} 
-
-	/*Use -1 to indicate if the file requested is not present*/
-	public float fractionPresent(int fileNumber){
-		return system[fileNumber];
+	public Hashtable<String, Float> getLocal(){
+		return this.local;
+	}
+	
+	public Hashtable<String, Float> getSystem(){
+		return this.system;
+	}
+	
+	public Hashtable<String, Integer> getLeastReplicated(){
+		return this.leastReplication;
+	}
+	
+	public Hashtable<String, Float> getWeightedLeastReplicated(){
+		return this.weightedLeastReplication;
+	}
+		
+	public void addLocalFile(String fileName, float fvalue){
+		local.put(fileName, fvalue);
+	}
+	
+	public void addSystemFile(String fileName, float fvalue){
+		system.put(fileName, fvalue);
+		numFiles++;
 	}
 
-	/*Use -1 to indicate if the file requested is not present*/
-	public int minimumReplicationLevel(int fileNumber){
-		return leastReplication[fileNumber];
+	public void addLeastReplicatedChunk(String fileName, int value){
+		leastReplication.put(fileName, value);
 	}
 	
-	/*Use -1 to indicate if the file requested is not present*/
-	public float averageReplicationLevel(int fileNumber){
-		return weightedLeastReplication[fileNumber];
+	public void addWeightedLeastReplicated(String fileName, float fvalue){
+		weightedLeastReplication.put(fileName, fvalue);
 	}
-	
-	
 }

@@ -50,7 +50,19 @@ public class ece454p1 {
 	    	}
 	    	//Query
 	    	else if (userInput.equals("2")){
-	    		peer.query(new Status());
+	    		Status s = new Status();
+	    		
+	    		peer.query(s);
+	    		
+	    		//print out parameters of Status object
+	    		System.out.printf("Number of files in the System: %d \n", s.getNumFiles());
+	    		System.out.println(s.getLocal().toString());
+	    		System.out.println();
+	    		System.out.println(s.getSystem().toString());
+	    		System.out.println();
+	    		System.out.println(s.getLeastReplicated().toString());
+	    		System.out.println();
+	    		System.out.println(s.getWeightedLeastReplicated().toString());
 	    	}
 	    	//Join
 	    	else if (userInput.equals("3")){

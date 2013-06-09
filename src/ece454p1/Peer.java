@@ -4,9 +4,9 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -95,7 +95,7 @@ public class Peer {
 
                                 // got query message, build PeerFileListInfo Message to send back
                                 PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
-                                FileListInfoMessage.sendBack(messageSender, pd, fListInfo);
+                                FileListInfoMessage.replyToQuery(messageSender, pd, fListInfo);
 
                             }
                             else if (obj instanceof FileListInfoMessage){
@@ -104,7 +104,7 @@ public class Peer {
                                 PeerDefinition pd = PeersList.getPeerByAddress(addr.getHostName(), addr.getPort());
 
                                 FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
-                                addPeerFileList(fListInfoMsg.getPeerFileListInfo());
+                                addPeerFileList(pd, fListInfoMsg.getPeerFileListInfo());
                             } else {
                                 System.err.println("Received message of unknown type");
                             }
@@ -136,12 +136,14 @@ public class Peer {
     private boolean closing = false;
     private Map<String, DistributedFile> files;
     private MessageSender messageSender;
-    private List<PeerFileListInfo> peerFileLists;
-    private int peerResponseCounter;
+    private Map<PeerDefinition, PeerFileListInfo> peerFileLists;
+    private Hashtable<String, int[]> globalFileList;
     
     public Peer(int port, MessageSender messageSender) {
         this.port = port;
         this.files = new ConcurrentHashMap<String, DistributedFile>();
+        this.peerFileLists = new ConcurrentHashMap<PeerDefinition, PeerFileListInfo>();
+        this.globalFileList = new Hashtable<String,int[]>();
         this.messageSender = messageSender;
 
         //Create directory in which to store files
@@ -241,74 +243,64 @@ public class Peer {
         //2) Fraction of file available in the system
         //3) Least replication level
         //4) Weighted least-replication level
-        try {
-            this.startServerSocket();
-        } catch (IOException e) {
-            System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
-        }
         
-        clearPeerFileLists();
+    	this.peerFileLists.clear();
+        this.globalFileList.clear();
         
         //Query all peers to build FileListInfo
-        messageSender.start();
+        //messageSender.start();
         QueryMessage.broadcast(messageSender);
-        
-        int numFiles;
-        
-    	/*
-    	 * The fraction of the file present locally (= chunks on this peer/total
-    	 * number chunks in the file)
-    	 */
-        float[] local;
-        
-    	/*
-    	 * The fraction of the file present in the system 
-    	 * (= chunks in the * system/total number chunks in the file) 
-    	 * (Note that if a chunk is present twice, 
-    	 * it doesn't get counted twice; this is simply intended to find out
-    	 * if we have the whole file in the system; 
-    	 * given that a file must be added at a peer, 
-    	 * think about why this number would ever not be 1.)
-    	 */
-        float[] system;
-        
-    	/*
-    	 * Sum by chunk over all peers; the minimum of this number is the least
-    	 * replicated chunk, and thus represents the least level of 
-    	 * replication of  the file
-    	 */        
-        int[] leastReplication;
-        
-    	/*
-    	 * Sum all chunks in all peers; 
-    	 * dived this by the number of chunks in the file; 
-    	 * this is the average level of replication of the file
-    	 */
-        float[] weightedLeastReplication;
-        
-        //calculate local[]
-        local = new float[files.size()];
-        int filenum = 0;
+        System.out.println("Query sent");
+                
+        //first populate global list with local files
+        PeerFileListInfo ownFileList = new PeerFileListInfo(getDistributedFileList());
+                        
+        //calculate status.local 
         for(DistributedFile f : files.values()) {
         	int numTotalChunks = f.getChunks().length;
-            int completeChunks = numTotalChunks - f.getIsComplete().size();
-            
-    		local[filenum] = completeChunks/numTotalChunks;
-        	filenum++;
-    	}
+            int completeChunks = numTotalChunks - f.getIncompleteChunks().size();
+
+        	status.addLocalFile(f.getFileName(), (float)completeChunks/numTotalChunks);
+    	}        
         
-        //TODO
-        //populate rest of status
-        List<String> fnames = new ArrayList<String>();
-        List<boolean[]> ca = new ArrayList<boolean[]>();
+        mergePeerFileLists(ownFileList);
+
+        //wait for all of the responses
+        System.out.println("Waiting for peer query responses ..................................");
+        while(peerFileLists.size() != (PeersList.getPeers().size())){}
+        System.out.println("All peer responses received");
         
-    	//cycle through all of the peerFileLists
-        for (PeerFileListInfo p: peerFileLists){
-        	//cycle through all of the files on each fileList
-        	for(String fn : p.getFileNames()){
- 
-        	}
+        //populate global list with peer file lists
+        for (PeerFileListInfo p: peerFileLists.values()){
+        	mergePeerFileLists(p);
         }
+              	
+        //populate rest of status
+		Iterator<Map.Entry<String, int[]>> it = globalFileList.entrySet().iterator();
+		while (it.hasNext()){
+			Map.Entry<String, int[]> entry = it.next();
+			int fileChunksInSystem = 0;
+			int totalNumChunks = 0;
+			int leastReplicatedChunkIndex = 0;
+			
+			for (int i=0; i<entry.getValue().length; i++){
+				if (entry.getValue()[i] > 0){
+					fileChunksInSystem++;
+					totalNumChunks += entry.getValue()[i];
+					if (entry.getValue()[i] < entry.getValue()[leastReplicatedChunkIndex]){
+						leastReplicatedChunkIndex = i;
+					}
+				}
+				else{
+					leastReplicatedChunkIndex = i;
+				}
+			}
+			float fileFractionInSystem = fileChunksInSystem/entry.getValue().length;
+			float weightedReplication = totalNumChunks/entry.getValue().length;
+			status.addSystemFile(entry.getKey(), fileFractionInSystem);
+			status.addLeastReplicatedChunk(entry.getKey(), leastReplicatedChunkIndex);
+			status.addWeightedLeastReplicated(entry.getKey(), weightedReplication);
+		}
 
         return ReturnCodes.OK;
     }
@@ -351,11 +343,33 @@ public class Peer {
         return closing;
     }
 
-	public void addPeerFileList(PeerFileListInfo peerFileList) {
-		this.peerFileLists.add(peerFileList);
+	public void addPeerFileList(PeerDefinition source, PeerFileListInfo peerFileList) {
+		this.peerFileLists.put(source, peerFileList);
 	}
 	
-	public void clearPeerFileLists(){
-		peerFileLists.clear();
+	private void mergePeerFileLists(PeerFileListInfo peerFileList){
+					
+		//cycle through each peer file hash table entry and update global file list
+		Iterator<Map.Entry<String, boolean[]>> it = peerFileList.getPeerFileHashTable().entrySet().iterator();
+		while (it.hasNext()){
+			Map.Entry<String, boolean[]> entry = it.next();
+			
+			int[] tempIntArray = new int[entry.getValue().length];
+			
+			for (int i=0; i<entry.getValue().length; i++){
+				int temp = 0;
+				
+				//if file is already on the global list, add to existing chunk values
+				if (this.globalFileList.containsKey(entry.getKey())){
+					temp += entry.getValue()[i]? 1: 0;
+					tempIntArray[i] = globalFileList.get(entry.getKey())[i] + temp;
+				}
+				else{
+					tempIntArray[i] = entry.getValue()[i]? 1: 0;						
+				}					
+			}
+			this.globalFileList.put(entry.getKey(), tempIntArray);
+		}
 	}
+	
 }

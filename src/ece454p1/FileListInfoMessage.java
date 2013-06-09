@@ -12,7 +12,7 @@ public class FileListInfoMessage extends Message{
     	return this.fileListInfo;
     }
     
-    public static void sendBack(MessageSender sender, PeerDefinition source, PeerFileListInfo fListInfo){
+    public static void replyToQuery(MessageSender sender, PeerDefinition source, PeerFileListInfo fListInfo){
     	//shouldn't broadcast to all peers, only target querying peer
         sender.sendMessage(new FileListInfoMessage(source, fListInfo));
     }
