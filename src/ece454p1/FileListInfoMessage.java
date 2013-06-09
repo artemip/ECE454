@@ -11,9 +11,4 @@ public class FileListInfoMessage extends Message{
     public PeerFileListInfo getPeerFileListInfo(){
     	return this.fileListInfo;
     }
-    
-    public static void replyToQuery(MessageSender sender, PeerDefinition source, int senderId, PeerFileListInfo fListInfo){
-    	//shouldn't broadcast to all peers, only target querying peer
-        sender.sendMessage(new FileListInfoMessage(source, fListInfo, senderId));
-    }
 }

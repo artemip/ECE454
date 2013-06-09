@@ -20,9 +20,9 @@ public class ece454p1 {
         String userInput = "";
         
         while(loop){
-	        System.out.println("1. Insert");
-	        System.out.println("2. Query");
-	        System.out.println("3. Join");
+	        System.out.println("1. Join");
+	        System.out.println("2. Insert");
+	        System.out.println("3. Query");
 	        System.out.println("4. Leave");
 	        System.out.println("5. Exit");
 	        
@@ -34,8 +34,12 @@ public class ece454p1 {
 	    		e.printStackTrace();
 	    	}
 	    	
-	    	//Insert
+	    	//Join
 	    	if (userInput.equals("1")){
+	    		peer.join();
+	    	}
+	    	//Insert
+	    	else if (userInput.equals("2")){
 	    		String fname = "";
 	    		System.out.println("Enter file name:");
 	    		try{
@@ -58,24 +62,23 @@ public class ece454p1 {
                 }
 	    	}
 	    	//Query
-	    	else if (userInput.equals("2")){
+	    	else if (userInput.equals("3")){
 	    		Status s = new Status();
 	    		
 	    		peer.query(s);
 	    		
 	    		//print out parameters of Status object
 	    		System.out.printf("Number of files in the System: %d \n", s.getNumFiles());
+	    		System.out.println("Status.Local");
 	    		System.out.println(s.getLocal().toString());
-	    		System.out.println();
+	    		System.out.println("Status.System");
 	    		System.out.println(s.getSystem().toString());
-	    		System.out.println();
+	    		System.out.println("Status.LeastReplicated");
 	    		System.out.println(s.getLeastReplicated().toString());
-	    		System.out.println();
+	    		System.out.println("Status.WeightedLeastReplicated");
 	    		System.out.println(s.getWeightedLeastReplicated().toString());
-	    	}
-	    	//Join
-	    	else if (userInput.equals("3")){
-	    		peer.join();
+	    		System.out.println();
+
 	    	}
 	    	//Leave
 	    	else if (userInput.equals("4")){
