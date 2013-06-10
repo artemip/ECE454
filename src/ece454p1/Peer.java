@@ -271,9 +271,25 @@ public class Peer {
     	}        
         
         //wait for all of the responses
-        System.out.println("Waiting for " + PeersList.getPeers().size() + " peer query responses ..................................");
-        while(peerFileLists.size() < (PeersList.getPeers().size())){}
-        System.out.println("All peer responses received");
+        System.out.println("Waiting for peer query responses ..................................");
+        boolean queryTimeout = false;
+        int queryWaitCounter = 0;
+        while((peerFileLists.size() < (PeersList.getPeers().size())) && (!queryTimeout)){
+			queryWait(1000);
+			System.out.print(".");
+			if (queryWaitCounter++ > 15){
+				queryTimeout = true;
+			}
+        }
+        
+        System.out.println();
+        if (queryTimeout){
+        	System.out.println("Query timed out after " + queryWaitCounter + " secs");
+        }
+        else{
+        	System.out.println("All peer responses received");
+        }
+        	
         System.out.println();
         
         //populate global list with peer file lists
@@ -386,5 +402,13 @@ public class Peer {
 			}
 			this.globalFileList.put(entry.getKey(), tempIntArray);
 		}
+	}
+	
+	private void queryWait(int n){
+		long t0, t1; 
+		t0 =  System.currentTimeMillis(); 
+		do{
+			t1 = System.currentTimeMillis();
+		} while (t1 - t0 < n);
 	}
 }
