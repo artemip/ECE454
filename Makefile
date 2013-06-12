@@ -2,6 +2,7 @@ JCC = javac
 JCCFLAGS = -J-Xms4096m -J-Xmx4096m -g
 JFLAGS = -Xmx4096m -cp src/
 SRCDIR=src/ece454p1
+RUNARGS=0 8000 peers.txt
 
 .SUFFIXES: .java .class
 
@@ -24,14 +25,17 @@ CLASSES = \
 	$(SRCDIR)/PullMessage.java \
 	$(SRCDIR)/QueryMessage.java \
 	$(SRCDIR)/ReturnCodes.java \
-	$(SRCDIR)/Status.java
+	$(SRCDIR)/Status.java \
+	$(SRCDIR)/FileListInfoMessage.java \
+	$(SRCDIR)/PeerFileListInfo.java \
+	$(SRCDIR)/SocketUtils.java
 
 default: classes
 
 classes: $(CLASSES:.java=.class)
 
 run:
-	java $(JFLAGS) ece454p1/ece454p1 8000 peers.txt
+	java $(JFLAGS) ece454p1/ece454p1 ${RUNARGS}
 
 clean:
 	$(RM) $(SRCDIR)/*.class
