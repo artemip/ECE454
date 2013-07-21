@@ -1,4 +1,4 @@
-package ece454p1;
+package ece454;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

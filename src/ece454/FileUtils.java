@@ -1,4 +1,4 @@
-package ece454p1;
+package ece454;
 
 import java.io.File;
 import java.io.FileInputStream;

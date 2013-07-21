@@ -1,4 +1,4 @@
-package ece454p1;
+package ece454;
 
 public class PullMessage extends Message {
     public PullMessage(PeerDefinition recipient, int senderId) {

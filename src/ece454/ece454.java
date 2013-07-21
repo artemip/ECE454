@@ -1,10 +1,10 @@
-package ece454p1;
+package ece454;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class ece454p1 {
+public class ece454 {
     public static void main(String[] args) {
         int peerId = Integer.parseInt(args[0]);
         int port = Integer.parseInt(args[1]);
