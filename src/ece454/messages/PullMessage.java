@@ -1,4 +1,8 @@
-package ece454;
+package ece454.messages;
+
+import ece454.PeerDefinition;
+import ece454.MessageSender;
+import ece454.PeersList;
 
 public class PullMessage extends Message {
     public PullMessage(PeerDefinition recipient, int senderId) {

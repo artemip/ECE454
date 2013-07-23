@@ -1,4 +1,6 @@
-package ece454;
+package ece454.util;
+
+import ece454.ece454;
 
 import java.net.Socket;
 

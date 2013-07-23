@@ -1,4 +1,4 @@
-package ece454;
+package ece454.storage;
 
 import java.io.*;
 import java.util.ArrayList;

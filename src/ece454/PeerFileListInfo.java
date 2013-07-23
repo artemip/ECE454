@@ -1,5 +1,7 @@
 package ece454;
 
+import ece454.storage.DistributedFile;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Hashtable;

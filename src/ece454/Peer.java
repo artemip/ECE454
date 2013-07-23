@@ -1,5 +1,13 @@
 package ece454;
 
+import ece454.messages.*;
+import ece454.storage.Chunk;
+import ece454.storage.DistributedFile;
+import ece454.util.Config;
+import ece454.util.FileUtils;
+import ece454.util.ReturnCodes;
+import ece454.util.SocketUtils;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,47 +16,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class Peer {
 
-    private class SocketAcceptor implements Runnable {
-        @Override
-        public void run() {
-            Socket connectedSocket;
+    private class PeerSocketHandlerThread extends SocketHandlerThread {
 
-            try {
-                while(!isClosing()) {
-                    connectedSocket = serverSocket.accept();
-                    serverHandlerWorkerPool.execute(new SocketHandlerThread(connectedSocket));
-                }
-
-                //Cleanup
-                serverHandlerWorkerPool.awaitTermination(5, TimeUnit.SECONDS);
-                serverSocket.close();
-            } catch (IOException e) {
-                System.err.println("Error occurred when waiting for a socket connection: " + e);
-            } catch (InterruptedException e) {
-                serverHandlerWorkerPool.shutdownNow();
-            }
-        }
-    }
-
-    private class SocketHandlerThread implements Runnable {
-        private final Socket socket;
-        private InputStream socketInputStream = null;
-        private ObjectInputStream messageInputStream = null;
-
-        public SocketHandlerThread(Socket socket) {
-            this.socket = socket;
-            try {
-                socketInputStream = this.socket.getInputStream();
-                messageInputStream = new ObjectInputStream(socketInputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        public PeerSocketHandlerThread(Socket socket) {
+            super(socket);
         }
 
         @Override
@@ -103,14 +77,15 @@ public class Peer {
                                 System.out.println("Received query message from " + sender.getFullAddress());
                                 PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
 
-                                messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
+                                //messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
                             }
-                            else if (obj instanceof FileListInfoMessage){
-                                //list of fileListInfo to use in Query()
-                                System.out.println("Received file list info message from " + sender.getFullAddress());
-                                FileListInfoMessage fListInfoMsg = (FileListInfoMessage)obj;
-                                addPeerFileList(sender, fListInfoMsg.getPeerFileListInfo());
-                            } else {
+                            else if(obj instanceof NodeListMessage) {
+                                NodeListMessage msg = (NodeListMessage)obj;
+                                PeersList.initialize(msg.getNodeList());
+
+                                synchronize();
+                            }
+                            else {
                                 System.err.println("Received message of unknown type");
                             }
                         } catch (ClassNotFoundException e) {
@@ -133,24 +108,30 @@ public class Peer {
         }
     }
 
+    private class PeerSocketHandlerThreadFactory implements ISocketHandlerThreadFactory {
+
+        @Override
+        public SocketHandlerThread createThread(Socket clientSocket) {
+            return new PeerSocketHandlerThread(clientSocket);
+        }
+    }
+
     private final int port;
     private final int id;
     private ServerSocket serverSocket;
     private Thread socketAcceptorThread;
-    private ExecutorService serverHandlerWorkerPool;
     private boolean closing = false;
     private Map<String, DistributedFile> files;
     private MessageSender messageSender;
     private Map<PeerDefinition, PeerFileListInfo> peerFileLists;
     private Hashtable<String, int[]> globalFileList;
     
-    public Peer(int id, int port, MessageSender messageSender) {
+    public Peer(int id, int port) {
         this.id = id;
         this.port = port;
         this.files = new ConcurrentHashMap<String, DistributedFile>();
         this.peerFileLists = new ConcurrentHashMap<PeerDefinition, PeerFileListInfo>();
         this.globalFileList = new Hashtable<String,int[]>();
-        this.messageSender = messageSender;
 
         //Create directory in which to store files
         (new File(Config.FILES_DIRECTORY)).mkdirs();
@@ -206,13 +187,11 @@ public class Peer {
         if (serverSocket == null)
             serverSocket = new ServerSocket(port);
 
-        serverHandlerWorkerPool = Executors.newFixedThreadPool(Config.MAX_PEERS - 1);
-
-        socketAcceptorThread = new Thread(new SocketAcceptor());
+        socketAcceptorThread = new Thread(new SocketAcceptor(serverSocket, new PeerSocketHandlerThreadFactory()));
         socketAcceptorThread.start();
     }
 
-	public int insert(String filename) {
+	public void insert(String filename) {
 
         File file = new File(filename);
         if (!file.exists()) {
@@ -239,99 +218,17 @@ public class Peer {
         for(Chunk c : newFile.getChunks())
             ChunkMessage.broadcast(c, messageSender, id);
 
-        return ReturnCodes.OK;
     }
 
-	public int query(Status status) {
-        //Populate 'status' with information regarding a file
-        //PARAMETERS:
-        //1) Fraction of file that is available locally
-        //2) Fraction of file available in the system
-        //3) Least replication level
-        //4) Weighted least-replication level
-        
-    	this.peerFileLists.clear();
-        this.globalFileList.clear();
-        
-        //Query all peers to build FileListInfo
-        //messageSender.start();
-        QueryMessage.broadcast(messageSender, this.id);
-        System.out.println("Query sent");
-                
-        //first populate global list with local files
-        PeerFileListInfo ownFileList = new PeerFileListInfo(getDistributedFileList());
-        mergePeerFileLists(ownFileList);
-        
-        //calculate status.local 
-        for(DistributedFile f : files.values()) {
-        	int numTotalChunks = f.getChunks().length;
-            int completeChunks = numTotalChunks - f.getIncompleteChunks().size();
+    public void synchronize() {
+        // Broadcast local files
+        broadcastFiles();
 
-        	status.addLocalFile(f.getFileName(), (float)completeChunks/numTotalChunks);
-    	}        
-        
-        //wait for all of the responses
-        System.out.println("Waiting for peer query responses ..................................");
-        boolean queryTimeout = false;
-        int queryWaitCounter = 0;
-        while((peerFileLists.size() < (PeersList.getPeers().size())) && (!queryTimeout)){
-			queryWait(1000);
-			System.out.print(".");
-			if (queryWaitCounter++ > 15){
-				queryTimeout = true;
-			}
-        }
-        
-        System.out.println();
-        if (queryTimeout){
-        	System.out.println("Query timed out after " + queryWaitCounter + " secs");
-        }
-        else{
-        	System.out.println("All peer responses received");
-        }
-        	
-        System.out.println();
-        
-        //populate global list with peer file lists
-        for (PeerFileListInfo p: peerFileLists.values()){
-        	mergePeerFileLists(p);
-        }
-              	
-        //populate rest of status
-		Iterator<Map.Entry<String, int[]>> it = globalFileList.entrySet().iterator();
-		while (it.hasNext()){
-			Map.Entry<String, int[]> entry = it.next();
-			int fileChunksInSystem = 0;
-			int totalNumChunks = 0;
-			int leastReplicatedChunkIndex = 0;
-			
-			for (int i=0; i<entry.getValue().length; i++){
-				if (entry.getValue()[i] > 0){
-					fileChunksInSystem++;
-					totalNumChunks += entry.getValue()[i];
-					if (entry.getValue()[i] < entry.getValue()[leastReplicatedChunkIndex]){
-						leastReplicatedChunkIndex = i;
-					}
-				}
-				else{
-					leastReplicatedChunkIndex = i;
-				}
-			}
-			float fileFractionInSystem = fileChunksInSystem/entry.getValue().length;
-			float weightedReplication = totalNumChunks/entry.getValue().length;
-			status.addSystemFile(entry.getKey(), fileFractionInSystem);
-			status.addLeastReplicatedChunk(entry.getKey(), leastReplicatedChunkIndex);
-			status.addWeightedLeastReplicated(entry.getKey(), weightedReplication);
-		}
-
-        return ReturnCodes.OK;
+        // Pull external files
+        PullMessage.broadcast(messageSender, id);
     }
 
-	/*
-	 * Note that we should have the peer list, so it is not needed as a
-	 * parameter
-	 */
-	public int join() {
+	public void join() {
         if(messageSender == null)
             messageSender = new MessageSender();
 
@@ -342,19 +239,14 @@ public class Peer {
         }
 
         messageSender.start();
-
-        broadcastFiles();
-
-        // Pull files
-        PullMessage.broadcast(messageSender, id);
-
-        return ReturnCodes.OK;
+        messageSender.sendMessage(new NodeListMessage(NodeAddressServer.NAS_DEFINITION, id, null));
     }
 
-	public int leave() {
+	public void leave() {
         //Inform all peers of absence
         //Preferred: push out rare file chunks before leaving
         //Close all sockets
+
         messageSender.shutdown();
         closing = true;
         try {
@@ -364,7 +256,6 @@ public class Peer {
         }
         serverSocket = null;
         messageSender = null;
-        return ReturnCodes.OK;
     }
 
     public int getId() {

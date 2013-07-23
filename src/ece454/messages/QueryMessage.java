@@ -1,6 +1,10 @@
-package ece454;
+package ece454.messages;
 
-public class QueryMessage extends Message {		
+import ece454.PeerDefinition;
+import ece454.MessageSender;
+import ece454.PeersList;
+
+public class QueryMessage extends Message {
     
 	public QueryMessage(PeerDefinition recipient, int senderId) {
         super(recipient, senderId);

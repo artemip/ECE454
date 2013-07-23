@@ -1,5 +1,8 @@
 package ece454;
 
+import ece454.messages.Message;
+import ece454.util.SocketUtils;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;

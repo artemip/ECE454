@@ -1,4 +1,8 @@
-package ece454;
+package ece454.messages;
+
+import ece454.storage.Chunk;
+import ece454.PeerDefinition;
+import ece454.MessageSender;
 
 public class ChunkMessage extends Message {
     private Chunk chunk;
@@ -13,7 +17,7 @@ public class ChunkMessage extends Message {
     }
 
     public static void broadcast(Chunk c, MessageSender sender, int senderId) {
-        for(PeerDefinition pd : PeersList.getPeers()) {
+        for(ece454.PeerDefinition pd : ece454.PeersList.getPeers()) {
             sender.sendMessage(new ChunkMessage(c, pd, senderId));
         }
     }
