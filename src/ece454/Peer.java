@@ -195,7 +195,7 @@ public class Peer {
 
         File file = new File(filename);
         if (!file.exists()) {
-            return ReturnCodes.FILE_NOT_FOUND;
+            return;
         }
 
         String newPath = Config.FILES_DIRECTORY + "/" + file.getName();
@@ -208,7 +208,7 @@ public class Peer {
             newFile = new DistributedFile(newPath);
         } catch (IOException e) {
             e.printStackTrace();
-            return ReturnCodes.FILE_COPY_ERR;
+            return;
         }
 
         // Add to list of local files
@@ -239,7 +239,7 @@ public class Peer {
         }
 
         messageSender.start();
-        messageSender.sendMessage(new NodeListMessage(NodeAddressServer.NAS_DEFINITION, id, null));
+        messageSender.sendMessage(new NodeListMessage(NodeAddressServer.NAS_DEFINITION, id, port, null));
     }
 
 	public void leave() {

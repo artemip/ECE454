@@ -29,7 +29,6 @@ public class NodeAddressServer {
                             Object obj = messageInputStream.readObject();
 
                             if(sender == null) {
-                                sender = PeersList.getPeerById(((Message)obj).getSenderId());
                                 if(sender == null) {
                                     System.err.println("Opened socket connection with unknown host. Closing connection...");
                                     return;
@@ -38,8 +37,17 @@ public class NodeAddressServer {
 
                             if(obj instanceof NodeListMessage) {
                                 System.out.println("Received node list request from " + sender.getFullAddress());
+                                NodeListMessage msg = (NodeListMessage)obj;
 
-                                messageSender.sendMessage(new NodeListMessage(sender, 0, (PeerDefinition[])idToPeerMap.values().toArray()));
+                                PeerDefinition newPeer = new PeerDefinition(this.socket.getInetAddress().getHostAddress(), msg.getSenderPort(), msg.getSenderId());
+
+                                System.out.println("Found new peer at " + newPeer.getFullAddress());
+
+                                // Add the sender to the peers list
+                                idToPeerMap.put(msg.getSenderId(), newPeer);
+
+                                // Respond with the complete peers list
+                                messageSender.sendMessage(new NodeListMessage(sender, 0, NAS_DEFINITION.getPort(), (PeerDefinition[])idToPeerMap.values().toArray()));
                             } else {
                                 System.err.println("Received message of unknown type");
                             }

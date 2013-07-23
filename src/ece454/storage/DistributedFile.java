@@ -87,8 +87,14 @@ public class DistributedFile {
 
             File f = new File(metadata.getFileName());
 
-            if(!f.exists())
+            if(!f.exists()) {
+                File parent = f.getParentFile();
+                if(!parent.exists() && !parent.mkdirs()){
+                    throw new IOException("Couldn't create dir: " + parent);
+                }
+
                 f.createNewFile();
+            }
 
             FileOutputStream fos = new FileOutputStream(metadata.getFileName());
             fos.write(INCOMPLETE_FILE_MAGIC_HEADER);
@@ -211,14 +217,28 @@ public class DistributedFile {
     public void save() {
         FileOutputStream fos = null;
         try {
+            this.isComplete = this.incompleteChunks.isEmpty();
+
             File f = new File(this.fileName);
 
-            if(!f.exists())
+            /*
+            File f = new File(this.fileName + ((this.isComplete) ? "" : ".remote"));
+
+            if(this.isComplete) {
+                new File(this.fileName + ".remote").delete(); //Remove temp file
+            }
+            */
+
+            if(!f.exists()) {
+                File parent = f.getParentFile();
+                if(!parent.exists() && !parent.mkdirs()){
+                    throw new IOException("Couldn't create dir: " + parent);
+                }
+
                 f.createNewFile();
+            }
 
             fos = new FileOutputStream(this.fileName);
-
-            this.isComplete = this.incompleteChunks.isEmpty();
 
             if(this.isComplete) {
                 for(Chunk c : this.chunks) {
