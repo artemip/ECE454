@@ -84,6 +84,13 @@ public class Peer {
 
                                 synchronize();
                             }
+                            else if(obj instanceof DeleteMessage) {
+                                DeleteMessage msg = (DeleteMessage)obj;
+
+                                remove(msg.getFilePath());
+
+                                synchronize();
+                            }
                             else {
                                 System.err.println("Received message of unknown type");
                             }
@@ -120,18 +127,35 @@ public class Peer {
         @Override
         public void fileCreated(FileChangeEvent fileChangeEvent) throws Exception {
             if(isNewFile(fileChangeEvent.getFile())) {
-                insert(fileChangeEvent.getFile().getURL().getPath());
+                String fileName = fileChangeEvent.getFile().getURL().getPath();
+                File file = new File(fileName);
+                String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
+
+                insert(fileName);
+
+                // Send the chunks to all connected peers
+                for(Chunk c : files.get(newPath).getChunks())
+                    ChunkMessage.broadcast(c, messageSender, id);
             }
         }
 
         @Override
         public void fileDeleted(FileChangeEvent fileChangeEvent) throws Exception {
-            //TODO: Delete a file
+            String fileName = fileChangeEvent.getFile().getURL().getPath();
+            File file = new File(fileName);
+            String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
+
+            remove(fileName);
+            DeleteMessage.broadcast(newPath, messageSender, id);
         }
 
         @Override
         public void fileChanged(FileChangeEvent fileChangeEvent) throws Exception {
-            //TODO: Changed file should propogate to all other peers
+            if(!isNewFile(fileChangeEvent.getFile())) {
+                String filePath = fileChangeEvent.getFile().getURL().getPath();
+                remove(filePath);
+                insert(filePath);
+            }
         }
 
         private boolean isNewFile(FileObject fileObject) {
@@ -251,11 +275,13 @@ public class Peer {
 
         // Add to list of local files
         files.put(newFile.getFileName(), newFile);
+    }
 
-        // Send the chunks to all connected peers
-        for(Chunk c : newFile.getChunks())
-            ChunkMessage.broadcast(c, messageSender, id);
+    public void remove(String filename) {
+        File file = new File(filename);
 
+        String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
+        files.remove(newPath);
     }
 
     public void synchronize() {

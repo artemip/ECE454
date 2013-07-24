@@ -1,7 +1,5 @@
 package ece454;
 
-import ece454.util.ReturnCodes;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

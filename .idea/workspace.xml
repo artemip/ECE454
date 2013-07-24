@@ -1,24 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="249ec425-cb85-42e7-82d7-839d7edfe46a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/util/Config.java" afterPath="$PROJECT_DIR$/src/ece454/util/Config.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" afterPath="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ECE454.iml" afterPath="$PROJECT_DIR$/ECE454.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/util/FileUtils.java" afterPath="$PROJECT_DIR$/src/ece454/util/FileUtils.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/Peer.java" afterPath="$PROJECT_DIR$/src/ece454/Peer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TODO.md" afterPath="$PROJECT_DIR$/TODO.md" />
-    </list>
+    <list default="true" id="249ec425-cb85-42e7-82d7-839d7edfe46a" name="Default" comment="" />
     <ignored path="ECE454.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374618061787" ignored="false" />
+    <file path="/Dummy.txt" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374637077067" ignored="false" />
     <file path="/NodeAddressServer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374546965711" ignored="false" />
     <file path="/SocketAcceptor.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374539219977" ignored="false" />
     <file path="/SocketHandlerThread.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374537825598" ignored="false" />
-    <file path="/Peer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374619720015" ignored="false" />
+    <file path="/Peer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374639125863" ignored="false" />
     <file path="/SocketHandlerThreadFactory.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374539171391" ignored="false" />
     <file path="/PeersList.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374543268114" ignored="false" />
-    <file path="/ChunkMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374546208566" ignored="false" />
+    <file path="/ChunkMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374637184114" ignored="false" />
     <file path="/NodeListMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374546759801" ignored="false" />
     <file path="/Message.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374546115194" ignored="false" />
     <file path="/QueryMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374540437624" ignored="false" />
@@ -28,6 +21,8 @@
     <file path="/Config.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374601248889" ignored="false" />
     <file path="/WatchDir.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374602858876" ignored="false" />
     <file path="/TODO.md" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374617377999" ignored="false" />
+    <file path="/commons_vfs2_2_0.xml" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374637022162" ignored="false" />
+    <file path="/DeleteMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374638004695" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,77 +83,93 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Peer.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="Peer.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ece454/Peer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="124" column="9" selection-start="5492" selection-end="5492" vertical-scroll-proportion="0.27929902">
+            <state line="276" column="50" selection-start="10536" selection-end="10536" vertical-scroll-proportion="0.0">
               <folding>
-                <element signature="class#PeerSocketHandlerThread#0;class#Peer#0" expanded="false" />
-                <element signature="class#PeerSocketHandlerThreadFactory#0;class#Peer#0" expanded="false" />
+                <element signature="e#8955#8961#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NodeAddressServer.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/NodeAddressServer.java">
+      <file leaf-file-name="TODO.md" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/TODO.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="43" column="0" selection-start="1593" selection-end="1593" vertical-scroll-proportion="0.0">
+            <state line="7" column="0" selection-start="291" selection-end="291" vertical-scroll-proportion="0.22623575">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="PeerDefinition.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/PeerDefinition.java">
+      <file leaf-file-name="DeleteMessage.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="13" selection-start="60" selection-end="60" vertical-scroll-proportion="0.0">
+            <state line="21" column="70" selection-start="624" selection-end="624" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Message.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/messages/Message.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="13" selection-start="154" selection-end="154" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ece454.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/ece454.java">
+      <file leaf-file-name="NodeListMessage.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="21" column="24" selection-start="658" selection-end="658" vertical-scroll-proportion="0.0">
+            <state line="25" column="4" selection-start="577" selection-end="577" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="IncompleteFileMetadata.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/storage/IncompleteFileMetadata.java">
+      <file leaf-file-name="commons_vfs2_2_0.xml" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/.idea/libraries/commons_vfs2_2_0.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="22" selection-start="311" selection-end="311" vertical-scroll-proportion="0.0">
+            <state line="3" column="26" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DistributedFile.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/storage/DistributedFile.java">
+      <file leaf-file-name="ChunkMessage.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="153" column="67" selection-start="5222" selection-end="5222" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="20" column="23" selection-start="522" selection-end="522" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FileUtils.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/util/FileUtils.java">
+      <file leaf-file-name="PeersList.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/PeersList.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="39" column="16" selection-start="1213" selection-end="1213" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="1" column="0" selection-start="16" selection-end="16" vertical-scroll-proportion="-0.68">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Config.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/util/Config.java">
+      <file leaf-file-name="PeerFileListInfo.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/PeerFileListInfo.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="2" column="0" selection-start="22" selection-end="22" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="16" column="12" selection-start="518" selection-end="518" vertical-scroll-proportion="-10.88">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -190,12 +201,8 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/ece454/messages/QueryMessage.java" />
-        <option value="$PROJECT_DIR$/src/ece454/messages/PullMessage.java" />
         <option value="$PROJECT_DIR$/src/ece454/messages/FileListInfoMessage.java" />
         <option value="$PROJECT_DIR$/src/ece454/storage/IncompleteFileMetadata.java" />
-        <option value="$PROJECT_DIR$/src/ece454/PeersList.java" />
-        <option value="$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java" />
         <option value="$PROJECT_DIR$/src/ece454/messages/Message.java" />
         <option value="$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java" />
         <option value="$PROJECT_DIR$/src/ece454/NodeAddressServer.java" />
@@ -205,15 +212,19 @@
         <option value="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" />
         <option value="$PROJECT_DIR$/src/ece454/storage/WatchDir.java" />
         <option value="$PROJECT_DIR$/TODO.md" />
+        <option value="$PROJECT_DIR$/.idea/libraries/commons_vfs2_2_0.xml" />
+        <option value="$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java" />
+        <option value="$PROJECT_DIR$/src/ece454/PeersList.java" />
+        <option value="$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java" />
         <option value="$PROJECT_DIR$/src/ece454/Peer.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1855" />
-    <option name="y" value="24" />
-    <option name="width" value="1855" />
-    <option name="height" value="1056" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1696" />
+    <option name="height" value="1026" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -241,6 +252,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -357,16 +369,61 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value=".idea" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECE454" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value=".idea" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="GoToFile.includeJavaFiles" value="false" />
-    <property name="project.structure.last.edited" value="Libraries" />
-    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.15" />
     <property name="OverrideImplement.combined" value="true" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="MemberChooser.sorted" value="false" />
@@ -376,6 +433,7 @@
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
+    <property name="FullScreen" value="false" />
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
@@ -502,26 +560,27 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1855" y="24" width="1855" height="1056" extended-state="6" />
+    <frame x="-8" y="-8" width="1696" height="1026" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33986175" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25594252" sideWeight="0.6709265" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25520197" sideWeight="0.66013825" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3290735" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -591,69 +650,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/ece454/ISocketHandlerThreadFactory.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="45" selection-start="134" selection-end="134" vertical-scroll-proportion="0.08408072">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/storage/Chunk.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="0" selection-start="25" selection-end="25" vertical-scroll-proportion="0.033632286">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/PeersList.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="9" selection-start="425" selection-end="425" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/messages/Message.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="45" selection-start="331" selection-end="343" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="334" selection-end="334" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="32" selection-start="538" selection-end="538" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/PeerDefinition.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="13" selection-start="60" selection-end="60" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/ece454.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="24" selection-start="658" selection-end="658" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/storage/IncompleteFileMetadata.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="22" selection-start="311" selection-end="311" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ece454/storage/DistributedFile.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="153" column="67" selection-start="5222" selection-end="5222" vertical-scroll-proportion="0.0">
@@ -675,18 +671,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/messages/PullMessage.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="32" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/TODO.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="7" selection-start="146" selection-end="146" vertical-scroll-proportion="0.08408072" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ece454/NodeAddressServer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="43" column="0" selection-start="1593" selection-end="1593" vertical-scroll-proportion="0.0">
@@ -694,13 +678,97 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ECE454.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="33" selection-start="150" selection-end="150" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/libraries/commons_vfs2_2_0.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="26" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/PeersList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="0" selection-start="16" selection-end="16" vertical-scroll-proportion="-0.68">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/PeerFileListInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="12" selection-start="518" selection-end="518" vertical-scroll-proportion="-10.88">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/messages/Message.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="13" selection-start="154" selection-end="154" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="4" selection-start="577" selection-end="577" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/messages/PullMessage.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="32" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="23" selection-start="522" selection-end="522" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="70" selection-start="624" selection-end="624" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/ece454/Peer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="124" column="9" selection-start="5492" selection-end="5492" vertical-scroll-proportion="0.27929902">
+        <state line="276" column="50" selection-start="10536" selection-end="10536" vertical-scroll-proportion="0.0">
           <folding>
-            <element signature="class#PeerSocketHandlerThread#0;class#Peer#0" expanded="false" />
-            <element signature="class#PeerSocketHandlerThreadFactory#0;class#Peer#0" expanded="false" />
+            <element signature="e#8955#8961#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TODO.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="0" selection-start="291" selection-end="291" vertical-scroll-proportion="0.22623575">
+          <folding />
         </state>
       </provider>
     </entry>
