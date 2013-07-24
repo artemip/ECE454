@@ -5,16 +5,15 @@ import ece454.storage.Chunk;
 import ece454.storage.DistributedFile;
 import ece454.util.Config;
 import ece454.util.FileUtils;
-import ece454.util.ReturnCodes;
 import ece454.util.SocketUtils;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.impl.DefaultFileMonitor;
 
 import java.io.*;
+import java.io.FileNotFoundException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Peer {
@@ -116,6 +115,39 @@ public class Peer {
         }
     }
 
+    private class PeerFileChangeListener implements FileListener {
+
+        @Override
+        public void fileCreated(FileChangeEvent fileChangeEvent) throws Exception {
+            if(isNewFile(fileChangeEvent.getFile())) {
+                insert(fileChangeEvent.getFile().getURL().getPath());
+            }
+        }
+
+        @Override
+        public void fileDeleted(FileChangeEvent fileChangeEvent) throws Exception {
+            //TODO: Delete a file
+        }
+
+        @Override
+        public void fileChanged(FileChangeEvent fileChangeEvent) throws Exception {
+            //TODO: Changed file should propogate to all other peers
+        }
+
+        private boolean isNewFile(FileObject fileObject) {
+            File f;
+
+            try {
+                f = new File(fileObject.getURL().getPath());
+            } catch (FileSystemException e) {
+                e.printStackTrace();
+                return true;
+            }
+
+            return !files.containsKey(FileUtils.getRelativePath(f, Config.FILES_DIRECTORY));
+        }
+    }
+
     private final int port;
     private final int id;
     private ServerSocket serverSocket;
@@ -134,7 +166,7 @@ public class Peer {
         this.globalFileList = new Hashtable<String,int[]>();
 
         //Create directory in which to store files
-        (new File(Config.FILES_DIRECTORY)).mkdirs();
+        (new File(Config.FILES_DIRECTORY_NAME)).mkdirs();
 
         try {
             scanFiles();
@@ -165,11 +197,19 @@ public class Peer {
     }
     
     private void scanFiles() throws FileNotFoundException {
-        File filesDir = new File(Config.FILES_DIRECTORY);
+        Queue<File> files = new LinkedList<File>();
+        File file = Config.FILES_DIRECTORY;
 
-        for(File file : filesDir.listFiles()) {
-            DistributedFile distFile = new DistributedFile(Config.FILES_DIRECTORY + "/" + file.getName());
-            this.files.put(distFile.getFileName(), distFile);
+        files.addAll(Arrays.asList(file.listFiles()));
+
+        while(!files.isEmpty()) {
+            file = files.poll();
+            if(file.isDirectory()) {
+                files.addAll(Arrays.asList(file.listFiles()));
+            } else {
+                DistributedFile distFile = new DistributedFile(FileUtils.getRelativePath(file, Config.FILES_DIRECTORY));
+                this.files.put(distFile.getFileName(), distFile);
+            }
         }
     }
 
@@ -194,17 +234,15 @@ public class Peer {
 	public void insert(String filename) {
 
         File file = new File(filename);
+
         if (!file.exists()) {
             return;
         }
 
-        String newPath = Config.FILES_DIRECTORY + "/" + file.getName();
-        File peerFile = new File(newPath);
+        String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
         DistributedFile newFile;
-        try {
-            FileUtils.copyFile(file, peerFile);
 
-            // Save as DistributedFile, which splits it up into chunks
+        try {
             newFile = new DistributedFile(newPath);
         } catch (IOException e) {
             e.printStackTrace();
@@ -226,6 +264,24 @@ public class Peer {
 
         // Pull external files
         PullMessage.broadcast(messageSender, id);
+    }
+
+    public void watchDirectory() {
+        FileSystemManager manager = null;
+        FileObject file = null;
+
+        try {
+            manager = VFS.getManager();
+            file = manager.resolveFile(Config.FILES_DIRECTORY_NAME);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        DefaultFileMonitor fm = new DefaultFileMonitor(new PeerFileChangeListener());
+        fm.setRecursive(true);
+        fm.setDelay(1000);
+        fm.addFile(file);
+        fm.start();
     }
 
 	public void join() {
@@ -261,45 +317,4 @@ public class Peer {
     public int getId() {
         return this.id;
     }
-
-    public boolean isClosing() {
-        return closing;
-    }
-
-	public void addPeerFileList(PeerDefinition source, PeerFileListInfo peerFileList) {
-		this.peerFileLists.put(source, peerFileList);
-	}
-	
-	private void mergePeerFileLists(PeerFileListInfo peerFileList){
-					
-		//cycle through each peer file hash table entry and update global file list
-		Iterator<Map.Entry<String, boolean[]>> it = peerFileList.getPeerFileHashTable().entrySet().iterator();
-		while (it.hasNext()){
-			Map.Entry<String, boolean[]> entry = it.next();
-			
-			int[] tempIntArray = new int[entry.getValue().length];
-			
-			for (int i=0; i<entry.getValue().length; i++){
-				int temp = 0;
-				
-				//if file is already on the global list, add to existing chunk values
-				if (this.globalFileList.containsKey(entry.getKey())){
-					temp += entry.getValue()[i]? 1: 0;
-					tempIntArray[i] = globalFileList.get(entry.getKey())[i] + temp;
-				}
-				else{
-					tempIntArray[i] = entry.getValue()[i]? 1: 0;						
-				}					
-			}
-			this.globalFileList.put(entry.getKey(), tempIntArray);
-		}
-	}
-	
-	private void queryWait(int n){
-		long t0, t1; 
-		t0 =  System.currentTimeMillis(); 
-		do{
-			t1 = System.currentTimeMillis();
-		} while (t1 - t0 < n);
-	}
 }

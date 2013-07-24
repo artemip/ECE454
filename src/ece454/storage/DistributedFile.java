@@ -1,5 +1,7 @@
 package ece454.storage;
 
+import ece454.util.Config;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,7 +87,7 @@ public class DistributedFile {
             this.size = metadata.getDataSize();
             this.fileName = metadata.getFileName();
 
-            File f = new File(metadata.getFileName());
+            File f = new File(Config.FILES_DIRECTORY + "/" + metadata.getFileName());
 
             if(!f.exists()) {
                 File parent = f.getParentFile();
@@ -104,7 +106,7 @@ public class DistributedFile {
             oos.close();
             fos.close();
 
-            RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw");
+            RandomAccessFile raf = new RandomAccessFile(Config.FILES_DIRECTORY + "/" + this.fileName, "rw");
             raf.setLength(raf.length() + metadata.getDataSize());
             raf.close();
 
@@ -126,15 +128,16 @@ public class DistributedFile {
      * @throws FileNotFoundException
      */
     public DistributedFile(String path) throws FileNotFoundException {
-        File file = new File(path);
         this.fileName = path;
+
+        File file = new File(Config.FILES_DIRECTORY + "/" + path);
 
         if(!file.exists()) {
             throw new FileNotFoundException("File at " + path + " does not exist.");
         }
 
         try {
-            this.isComplete = isCompleteFile(path);
+            this.isComplete = isCompleteFile(Config.FILES_DIRECTORY + "/" + path);
             int numChunks = (int)Math.ceil(((double)file.length()) / Chunk.MAX_CHUNK_SIZE);
             ArrayList<Chunk> chunks = new ArrayList<Chunk>(numChunks);
             FileInputStream f = new FileInputStream(file);
@@ -219,7 +222,7 @@ public class DistributedFile {
         try {
             this.isComplete = this.incompleteChunks.isEmpty();
 
-            File f = new File(this.fileName);
+            File f = new File(Config.FILES_DIRECTORY + "/" + this.fileName);
 
             /*
             File f = new File(this.fileName + ((this.isComplete) ? "" : ".remote"));
@@ -238,7 +241,7 @@ public class DistributedFile {
                 f.createNewFile();
             }
 
-            fos = new FileOutputStream(this.fileName);
+            fos = new FileOutputStream(Config.FILES_DIRECTORY + "/" + this.fileName);
 
             if(this.isComplete) {
                 for(Chunk c : this.chunks) {

@@ -31,4 +31,14 @@ public class FileUtils {
             }
         }
     }
+
+    public static String getRelativePath(File file, File relativeTo) {
+        String filePath = file.getAbsolutePath();
+        String relativeToPath = relativeTo.getAbsolutePath();
+        if (filePath.startsWith(relativeToPath)) {
+            return filePath.substring(relativeToPath.length() + 1);
+        } else {
+            return null;
+        }
+    }
 }
