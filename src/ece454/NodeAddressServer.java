@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NodeAddressServer {
-    public static final PeerDefinition NAS_DEFINITION = new PeerDefinition("localhost", 9000, 0);
+    public static final PeerDefinition NAS_DEFINITION = new PeerDefinition("127.0.0.1", 9000, 0);
 
     private class NASSocketHandlerThread extends SocketHandlerThread {
 

@@ -128,6 +128,8 @@ public class Peer {
         @Override
         public void fileCreated(FileChangeEvent fileChangeEvent) throws Exception {
             if(isNewFile(fileChangeEvent.getFile())) {
+		System.out.println("Found new file at: " + fileChangeEvent.getFile().getURL().getPath());
+
                 String fileName = fileChangeEvent.getFile().getURL().getPath();
                 File file = new File(fileName);
                 String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
@@ -142,6 +144,8 @@ public class Peer {
 
         @Override
         public void fileDeleted(FileChangeEvent fileChangeEvent) throws Exception {
+	    System.out.println("Detected file deletion at: " + fileChangeEvent.getFile().getURL().getPath());
+
             String fileName = fileChangeEvent.getFile().getURL().getPath();
             File file = new File(fileName);
             String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
@@ -152,6 +156,8 @@ public class Peer {
 
         @Override
         public void fileChanged(FileChangeEvent fileChangeEvent) throws Exception {
+	    System.out.println("Detected file modification at: " + fileChangeEvent.getFile().getURL().getPath());
+
             if(!isNewFile(fileChangeEvent.getFile())) {
                 String filePath = fileChangeEvent.getFile().getURL().getPath();
                 remove(filePath);
@@ -191,7 +197,10 @@ public class Peer {
         this.globalFileList = new Hashtable<String,int[]>();
 
         //Create directory in which to store files
-        (new File(Config.FILES_DIRECTORY_NAME)).mkdirs();
+	
+        if(!Config.FILES_DIRECTORY.exists() && !Config.FILES_DIRECTORY.mkdirs()) {
+	    System.out.println("Unable to create file directory");
+	}
 
         try {
             scanFiles();
@@ -299,7 +308,7 @@ public class Peer {
 
         try {
             manager = VFS.getManager();
-            file = manager.resolveFile(Config.FILES_DIRECTORY_NAME);
+            file = manager.resolveFile(Config.FILES_DIRECTORY.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }

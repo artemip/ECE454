@@ -145,8 +145,7 @@ public class MessageSender extends Thread {
                         wait();
                     }
                 }
-		System.out.println(msg.getRecipient().getId());
-		System.out.println(msg.getRecipient().getFullAddress());
+
                 peerSocketsMap.get(msg.getRecipient()).writeMessage(msg);
             }
         } catch (InterruptedException e) {
@@ -159,7 +158,6 @@ public class MessageSender extends Thread {
     }
 
     public void sendMessage(Message message) {
-	new Throwable().printStackTrace();
         messagesToSend.add(message);
         wakeup();
     }
