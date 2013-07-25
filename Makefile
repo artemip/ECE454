@@ -1,41 +1,46 @@
 JCC = javac
 JCCFLAGS = -J-Xms4096m -J-Xmx4096m -g
 JFLAGS = -Xmx4096m -cp src/
-SRCDIR=src/ece454p1
+SRCDIR=src/ece454
 RUNARGS=0 8000 peers.txt
 
 .SUFFIXES: .java .class
 
 .java.class:
-	$(JCC) $(JCCFLAGS) -cp $(SRCDIR) $(SRCDIR)/*.java
+	$(JCC) $(JCCFLAGS) -classpath lib/commons-vfs2-2.0.jar -sourcepath $(SRCDIR) $(SRCDIR)/*.java $(SRCDIR)/*/*.java
 
 CLASSES = \
 	$(SRCDIR)/PeerDefinition.java \
-	$(SRCDIR)/IncompleteFileMetadata.java \
-	$(SRCDIR)/Message.java \
-	$(SRCDIR)/Chunk.java \
-	$(SRCDIR)/ChunkMessage.java \
-	$(SRCDIR)/Config.java \
-	$(SRCDIR)/DistributedFile.java \
-	$(SRCDIR)/ece454p1.java \
-	$(SRCDIR)/FileUtils.java \
+	$(SRCDIR)/ISocketHandlerThreadFactory.java \
+	$(SRCDIR)/messages/ChunkMessage.java \
+	$(SRCDIR)/messages/DeleteMessage.java \
+	$(SRCDIR)/messages/Message.java \
+	$(SRCDIR)/messages/NodeListMessage.java \
+	$(SRCDIR)/messages/PullMessage.java \
+	$(SRCDIR)/messages/QueryMessage.java \
 	$(SRCDIR)/MessageSender.java \
+	$(SRCDIR)/NodeAddressServer.java \
+	$(SRCDIR)/PeerFileListInfo.java \
 	$(SRCDIR)/Peer.java \
 	$(SRCDIR)/PeersList.java \
-	$(SRCDIR)/PullMessage.java \
-	$(SRCDIR)/QueryMessage.java \
-	$(SRCDIR)/ReturnCodes.java \
-	$(SRCDIR)/Status.java \
-	$(SRCDIR)/FileListInfoMessage.java \
-	$(SRCDIR)/PeerFileListInfo.java \
-	$(SRCDIR)/SocketUtils.java
+	$(SRCDIR)/SocketAcceptor.java \
+	$(SRCDIR)/SocketHandlerThread.java \
+	$(SRCDIR)/storage/Chunk.java \
+	$(SRCDIR)/storage/DistributedFile.java \
+	$(SRCDIR)/storage/IncompleteFileMetadata.java \
+	$(SRCDIR)/util/Config.java \
+	$(SRCDIR)/util/FileUtils.java \
+	$(SRCDIR)/util/ReturnCodes.java \
+	$(SRCDIR)/util/SocketUtils.java \
+	$(SRCDIR)/ece454.java
 
 default: classes
 
 classes: $(CLASSES:.java=.class)
 
 run:
-	java $(JFLAGS) ece454p1/ece454p1 ${RUNARGS}
+	java $(JFLAGS) -classpath lib/commons-vfs2-2.0.jar ece454/ece454 ${RUNARGS}
 
 clean:
 	$(RM) $(SRCDIR)/*.class
+	$(RM) $(SRCDIR)/*/*.class

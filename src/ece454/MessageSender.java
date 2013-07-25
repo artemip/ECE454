@@ -109,20 +109,27 @@ public class MessageSender extends Thread {
 
     @Override
     public void start() {
-        for(PeerDefinition pd : PeersList.getPeers()) {
-            Socket s = null;
-            try {
-                s = new Socket(pd.getIPAddress(), pd.getPort());
-            } catch (IOException e) {
-                System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
-            }
-
-            SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
-            peerSocketsMap.put(pd, msgThread);
-            msgThread.start();
-        }
-
+	initPeerSockets();
         super.start();
+    }
+
+    public void initPeerSockets() {
+	for(PeerDefinition pd : PeersList.getPeers()) {
+	    addPeerSocket(pd);
+        }
+    }
+
+    public void addPeerSocket(PeerDefinition pd) {
+	Socket s = null;
+	try {
+	    s = new Socket(pd.getIPAddress(), pd.getPort());
+	} catch (IOException e) {
+	    System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
+	}
+	
+	SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
+	peerSocketsMap.put(pd, msgThread);
+	msgThread.start();
     }
 
     @Override
@@ -138,7 +145,8 @@ public class MessageSender extends Thread {
                         wait();
                     }
                 }
-
+		System.out.println(msg.getRecipient().getId());
+		System.out.println(msg.getRecipient().getFullAddress());
                 peerSocketsMap.get(msg.getRecipient()).writeMessage(msg);
             }
         } catch (InterruptedException e) {
@@ -151,6 +159,7 @@ public class MessageSender extends Thread {
     }
 
     public void sendMessage(Message message) {
+	new Throwable().printStackTrace();
         messagesToSend.add(message);
         wakeup();
     }

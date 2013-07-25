@@ -81,6 +81,7 @@ public class Peer {
                             else if(obj instanceof NodeListMessage) {
                                 NodeListMessage msg = (NodeListMessage)obj;
                                 PeersList.initialize(msg.getNodeList());
+				messageSender.initPeerSockets();
 
                                 synchronize();
                             }
@@ -319,6 +320,8 @@ public class Peer {
         } catch (IOException e) {
             System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
         }
+
+	PeersList.addPeer(NodeAddressServer.NAS_DEFINITION);
 
         messageSender.start();
         messageSender.sendMessage(new NodeListMessage(NodeAddressServer.NAS_DEFINITION, id, port, null));

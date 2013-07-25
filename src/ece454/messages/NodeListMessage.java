@@ -3,6 +3,7 @@ package ece454.messages;
 
 import ece454.MessageSender;
 import ece454.PeerDefinition;
+import ece454.PeersList;
 
 public class NodeListMessage extends Message {
 
@@ -23,5 +24,9 @@ public class NodeListMessage extends Message {
         return senderPort;
     }
 
-    public static void broadcast(MessageSender sender, int senderId) { }
+    public static void broadcast(int senderPort, PeerDefinition[] nodeList, MessageSender sender, int senderId) {
+	for(PeerDefinition pd : PeersList.getPeers()) {
+            sender.sendMessage(new NodeListMessage(pd, senderId, senderPort, nodeList));
+        }
+    }
 }

@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PeersList {
-    private static List<PeerDefinition> peers;
+    private static List<PeerDefinition> peers = new ArrayList<PeerDefinition>();
 
     public static void initialize(PeerDefinition[] peersList) {
+	peers = new ArrayList<PeerDefinition>();
+
         for(PeerDefinition p : peersList) {
             peers.add(p);
         }

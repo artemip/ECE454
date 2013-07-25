@@ -45,9 +45,10 @@ public class NodeAddressServer {
 
                                 // Add the sender to the peers list
                                 idToPeerMap.put(msg.getSenderId(), newPeer);
+				PeersList.addPeer(newPeer);
 
                                 // Respond with the complete peers list
-                                messageSender.sendMessage(new NodeListMessage(sender, 0, NAS_DEFINITION.getPort(), (PeerDefinition[])idToPeerMap.values().toArray()));
+				NodeListMessage.broadcast(NAS_DEFINITION.getPort(), (PeerDefinition[])idToPeerMap.values().toArray(), messageSender, 0);
                             } else {
                                 System.err.println("Received message of unknown type");
                             }
