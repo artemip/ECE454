@@ -136,6 +136,10 @@ public class MessageSender extends Thread {
         msgThread.start();
     }
 
+    public void removePeerSocket(int peerId) {
+        peerSocketsMap.remove(peerId);
+    }
+
     @Override
     public void run() {
         Message msg;
@@ -167,8 +171,8 @@ public class MessageSender extends Thread {
     }
 
     public void shutdown() {
-        stopSending = true;
         wakeup();
+        stopSending = true;
         this.interrupt();
 
         for (SocketMessagingThread t : this.peerSocketsMap.values()) {

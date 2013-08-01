@@ -332,16 +332,23 @@ public class Peer {
     }
 
     public void leave() {
-        //Inform all peers of absence
-        //Preferred: push out rare file chunks before leaving
-        //Close all sockets
+        messageSender.sendMessage(new LeaveMessage(NodeAddressServer.NAS_DEFINITION, id, port));
 
-        messageSender.shutdown();
+        try {
+            // Give time for the message to send
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         try {
             serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        messageSender.shutdown();
+
         serverSocket = null;
         messageSender = null;
     }

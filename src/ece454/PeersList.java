@@ -28,6 +28,15 @@ public class PeersList {
         return null;
     }
 
+    public static void removePeer(int peerId) {
+        for(int i = 0; i < peers.size(); i++) {
+            if(peers.get(i).getId() == peerId) {
+                peers.remove(i);
+                break;
+            }
+        }
+    }
+
     public static List<PeerDefinition> getPeers() {
         return peers;
     }
