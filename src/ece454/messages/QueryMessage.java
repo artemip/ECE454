@@ -6,13 +6,13 @@ import ece454.PeersList;
 
 public class QueryMessage extends Message {
 
-    public QueryMessage(PeerDefinition recipient, int senderId) {
-        super(recipient, senderId);
+    public QueryMessage(PeerDefinition recipient, int senderId, int senderPort) {
+        super(recipient, senderId, senderPort);
     }
 
-    public static void broadcast(MessageSender msgSender, int senderId) {
+    public static void broadcast(MessageSender msgSender, int senderId, int senderPort) {
         for (PeerDefinition pd : PeersList.getPeers()) {
-            msgSender.sendMessage(new QueryMessage(pd, senderId));
+            msgSender.sendMessage(new QueryMessage(pd, senderId, senderPort));
         }
     }
 }

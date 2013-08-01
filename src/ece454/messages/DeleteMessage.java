@@ -8,8 +8,8 @@ public class DeleteMessage extends Message {
 
     private String filePath;
 
-    public DeleteMessage(String filePath, PeerDefinition recipient, int senderId) {
-        super(recipient, senderId);
+    public DeleteMessage(String filePath, PeerDefinition recipient, int senderId, int senderPort) {
+        super(recipient, senderId, senderPort);
         this.filePath = filePath;
     }
 
@@ -17,9 +17,9 @@ public class DeleteMessage extends Message {
         return filePath;
     }
 
-    public static void broadcast(String path, MessageSender sender, int senderId) {
+    public static void broadcast(String path, MessageSender sender, int senderId, int senderPort) {
         for (PeerDefinition pd : PeersList.getPeers()) {
-            sender.sendMessage(new DeleteMessage(path, pd, senderId));
+            sender.sendMessage(new DeleteMessage(path, pd, senderId, senderPort));
         }
     }
 }

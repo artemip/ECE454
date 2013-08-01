@@ -8,8 +8,8 @@ import ece454.storage.Chunk;
 public class ChunkMessage extends Message {
     private Chunk chunk;
 
-    public ChunkMessage(Chunk chunk, PeerDefinition recipient, int senderId) {
-        super(recipient, senderId);
+    public ChunkMessage(Chunk chunk, PeerDefinition recipient, int senderId, int senderPort) {
+        super(recipient, senderId, senderPort);
         this.chunk = chunk;
     }
 
@@ -17,9 +17,9 @@ public class ChunkMessage extends Message {
         return chunk;
     }
 
-    public static void broadcast(Chunk c, MessageSender sender, int senderId) {
+    public static void broadcast(Chunk c, MessageSender sender, int senderId, int senderPort) {
         for (PeerDefinition pd : PeersList.getPeers()) {
-            sender.sendMessage(new ChunkMessage(c, pd, senderId));
+            sender.sendMessage(new ChunkMessage(c, pd, senderId, senderPort));
         }
     }
 }

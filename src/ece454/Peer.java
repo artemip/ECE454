@@ -38,8 +38,8 @@ public class Peer {
                             if (sender == null) {
                                 sender = PeersList.getPeerById(((Message) obj).getSenderId());
                                 if (sender == null) {
-                                    System.err.println("Opened socket connection with unknown host. Closing connection...");
-                                    return;
+                                    Message msg = (Message)obj;
+                                    sender = new PeerDefinition(this.socket.getInetAddress().getHostAddress(), msg.getSenderPort(), msg.getSenderId());
                                 }
                             }
 
@@ -78,7 +78,7 @@ public class Peer {
                                 //messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
                             } else if (obj instanceof NodeListMessage) {
                                 NodeListMessage msg = (NodeListMessage) obj;
-                                PeersList.initialize(msg.getNodeList());
+                                PeersList.initialize(msg.getNodeList(), getId());
                                 messageSender.initPeerSockets();
 
                                 synchronize();
@@ -134,7 +134,7 @@ public class Peer {
 
                 // Send the chunks to all connected peers
                 for (Chunk c : files.get(newPath).getChunks())
-                    ChunkMessage.broadcast(c, messageSender, id);
+                    ChunkMessage.broadcast(c, messageSender, id, port);
             }
         }
 
@@ -147,7 +147,7 @@ public class Peer {
             String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
 
             remove(fileName);
-            DeleteMessage.broadcast(newPath, messageSender, id);
+            DeleteMessage.broadcast(newPath, messageSender, id, port);
         }
 
         @Override
@@ -204,7 +204,7 @@ public class Peer {
     private void broadcastFiles() {
         for (DistributedFile f : files.values()) {
             for (Chunk c : f.getChunks()) {
-                ChunkMessage.broadcast(c, messageSender, id);
+                ChunkMessage.broadcast(c, messageSender, id, port);
             }
         }
     }
@@ -212,7 +212,7 @@ public class Peer {
     private void sendAllChunksToPeer(PeerDefinition recipient) {
         for (DistributedFile f : files.values()) {
             for (Chunk c : f.getChunks()) {
-                messageSender.sendMessage(new ChunkMessage(c, recipient, id));
+                messageSender.sendMessage(new ChunkMessage(c, recipient, id, port));
             }
         }
     }
@@ -260,7 +260,7 @@ public class Peer {
 
         File file = new File(filename);
 
-        if (!file.exists()) {
+        if (!file.exists() || file.isDirectory()) {
             return;
         }
 
@@ -290,7 +290,7 @@ public class Peer {
         broadcastFiles();
 
         // Pull external files
-        PullMessage.broadcast(messageSender, id);
+        PullMessage.broadcast(messageSender, id, port);
     }
 
     public void watchDirectory() {
@@ -344,5 +344,9 @@ public class Peer {
 
     public int getId() {
         return this.id;
+    }
+
+    public int getPort() {
+        return port;
     }
 }
