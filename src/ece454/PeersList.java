@@ -6,11 +6,12 @@ import java.util.List;
 public class PeersList {
     private static List<PeerDefinition> peers = new ArrayList<PeerDefinition>();
 
-    public static void initialize(PeerDefinition[] peersList) {
+    public static void initialize(PeerDefinition[] peersList, int localPeerId) {
         peers = new ArrayList<PeerDefinition>();
 
         for (PeerDefinition p : peersList) {
-            peers.add(p);
+            if(p.getId() != localPeerId)
+                peers.add(p);
         }
     }
 

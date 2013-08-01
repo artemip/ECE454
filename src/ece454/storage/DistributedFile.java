@@ -99,7 +99,7 @@ public class DistributedFile {
                 f.createNewFile();
             }
 
-            FileOutputStream fos = new FileOutputStream(metadata.getFileName());
+            FileOutputStream fos = new FileOutputStream(f);
             fos.write(INCOMPLETE_FILE_MAGIC_HEADER);
 
             ObjectOutputStream oos = new ObjectOutputStream(fos);

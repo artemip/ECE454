@@ -11,7 +11,7 @@ public class NodeListMessage extends Message {
     private int senderPort;
 
     public NodeListMessage(PeerDefinition recipient, int senderId, int senderPort, PeerDefinition[] nodeList) {
-        super(recipient, senderId);
+        super(recipient, senderId, senderPort);
         this.nodeList = nodeList;
         this.senderPort = senderPort;
     }
