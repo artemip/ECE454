@@ -101,11 +101,11 @@ public class MessageSender extends Thread {
     }
 
     private ConcurrentLinkedQueue<Message> messagesToSend;
-    private final Map<PeerDefinition, SocketMessagingThread> peerSocketsMap;
+    private final Map<Integer, SocketMessagingThread> peerSocketsMap;
     private boolean stopSending = false;
 
     public MessageSender() {
-        peerSocketsMap = new ConcurrentHashMap<PeerDefinition, SocketMessagingThread>();
+        peerSocketsMap = new ConcurrentHashMap<Integer, SocketMessagingThread>();
         messagesToSend = new ConcurrentLinkedQueue<Message>();
     }
 
@@ -132,7 +132,7 @@ public class MessageSender extends Thread {
         }
 
         SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
-        peerSocketsMap.put(pd, msgThread);
+        peerSocketsMap.put(pd.getId(), msgThread);
         msgThread.start();
     }
 
@@ -154,7 +154,12 @@ public class MessageSender extends Thread {
                     }
                 }
 
-                peerSocketsMap.get(msg.getRecipient()).writeMessage(msg);
+                SocketMessagingThread messagingThread = peerSocketsMap.get(msg.getRecipient().getId());
+                if(messagingThread != null) {
+                        messagingThread.writeMessage(msg);
+                } else {
+                    System.err.println("Could not find messaging thread for " + msg.getRecipient().getFullAddress());
+                }
             }
         } catch (InterruptedException e) {
             System.err.println("Exiting work queue loop");
@@ -176,7 +181,7 @@ public class MessageSender extends Thread {
         this.interrupt();
 
         for (SocketMessagingThread t : this.peerSocketsMap.values()) {
-            t.shutdown();
+            t.stop();
         }
     }
 }

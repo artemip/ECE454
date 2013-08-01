@@ -142,7 +142,7 @@ public class DistributedFile {
             this.isComplete = isCompleteFile(Config.FILES_DIRECTORY + "/" + path);
             int numChunks = (int) Math.ceil(((double) file.length()) / Chunk.MAX_CHUNK_SIZE);
             ArrayList<Chunk> chunks = new ArrayList<Chunk>(numChunks);
-            FileInputStream f = new FileInputStream(file);
+            FileInputStream fis = new FileInputStream(file);
 
             this.incompleteChunks = new HashSet<Integer>();
             byte[] readChunk = new byte[Chunk.MAX_CHUNK_SIZE];
@@ -160,7 +160,7 @@ public class DistributedFile {
                 IncompleteFileMetadata metadata = new IncompleteFileMetadata(chunkAvailability, this.size, this.fileName);
 
                 // Read the entire file chunk-by-chunk
-                while ((numBytesRead = f.read(readChunk)) > -1) {
+                while ((numBytesRead = fis.read(readChunk)) > -1) {
                     chunks.add(new Chunk(index++, numBytesRead, readChunk, metadata));
                 }
             } else {
@@ -170,11 +170,11 @@ public class DistributedFile {
                 boolean[] chunkAvailability = metadata.getChunkAvailability();
 
                 //Skip ahead in the file stream to get to the data
-                readMagicHeader(f);
-                readIncompleteFileMetadata(f);
+                readMagicHeader(fis);
+                readIncompleteFileMetadata(fis);
 
                 // Read file data, replacing empty data chunks with 'null's
-                while ((numBytesRead = f.read(readChunk)) > -1) {
+                while ((numBytesRead = fis.read(readChunk)) > -1) {
                     if (chunkAvailability[index]) {
                         chunks.add(new Chunk(index, numBytesRead, readChunk, metadata));
                     } else {
@@ -186,6 +186,8 @@ public class DistributedFile {
                     index++;
                 }
             }
+
+            fis.close();
 
             this.chunks = chunks.toArray(this.chunks);
         } catch (IOException e) {

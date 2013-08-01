@@ -85,6 +85,8 @@ public class Peer {
                             } else if (obj instanceof DeleteMessage) {
                                 DeleteMessage msg = (DeleteMessage) obj;
 
+                                System.out.println("Received delete message from " + sender.getFullAddress() + " for file " + msg.getFilePath());
+
                                 remove(msg.getFilePath());
 
                                 synchronize();
@@ -284,9 +286,10 @@ public class Peer {
 
     public void remove(String filename) {
         File file = new File(filename);
-
         String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
-        files.remove(newPath);
+
+        file.delete();
+        //files.remove(newPath);
     }
 
     public void synchronize() {
@@ -351,6 +354,8 @@ public class Peer {
 
         serverSocket = null;
         messageSender = null;
+
+        System.exit(0);
     }
 
     public int getId() {

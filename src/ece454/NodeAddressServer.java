@@ -21,6 +21,7 @@ public class NodeAddressServer {
         DisabledPeer(int id, long timeOfDeparture) {
             this.id = id;
             this.timeOfDeparture = timeOfDeparture;
+            this.queuedMessages = new ArrayList<Message>();
         }
 
         public int getId() {
