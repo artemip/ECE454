@@ -3,7 +3,7 @@ JCCFLAGS = -J-Xms4096m -J-Xmx4096m -g
 JFLAGS = -Xmx4096m -cp src/
 SRCDIR=src/ece454
 RUNARGS=0 8000
-LIBS=lib/*
+LIBS=lib/commons-logging-1.1.3.jar:lib/commons-vfs2-2.0.jar
 
 .SUFFIXES: .java .class
 
