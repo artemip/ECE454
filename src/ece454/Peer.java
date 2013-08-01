@@ -128,6 +128,10 @@ public class Peer {
 
                 String fileName = fileChangeEvent.getFile().getURL().getPath();
                 File file = new File(fileName);
+
+                if(file.isDirectory())
+                    return;
+
                 String newPath = FileUtils.getRelativePath(file, Config.FILES_DIRECTORY);
 
                 insert(fileName);

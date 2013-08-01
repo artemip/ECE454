@@ -2,17 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="249ec425-cb85-42e7-82d7-839d7edfe46a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java" afterPath="$PROJECT_DIR$/src/ece454/messages/ChunkMessage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/util/Config.java" afterPath="$PROJECT_DIR$/src/ece454/util/Config.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java" afterPath="$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" afterPath="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/Message.java" afterPath="$PROJECT_DIR$/src/ece454/messages/Message.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java" afterPath="$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/Peer.java" afterPath="$PROJECT_DIR$/src/ece454/Peer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/PeersList.java" afterPath="$PROJECT_DIR$/src/ece454/PeersList.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/PullMessage.java" afterPath="$PROJECT_DIR$/src/ece454/messages/PullMessage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/messages/QueryMessage.java" afterPath="$PROJECT_DIR$/src/ece454/messages/QueryMessage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ece454/ece454.java" afterPath="$PROJECT_DIR$/src/ece454/ece454.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ECE454.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -20,7 +11,7 @@
     <file path="/NodeAddressServer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1375381330693" ignored="false" />
     <file path="/SocketAcceptor.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374539219977" ignored="false" />
     <file path="/SocketHandlerThread.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374537825598" ignored="false" />
-    <file path="/Peer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1375384503098" ignored="false" />
+    <file path="/Peer.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1375385158225" ignored="false" />
     <file path="/SocketHandlerThreadFactory.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374539171391" ignored="false" />
     <file path="/PeersList.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1375382643522" ignored="false" />
     <file path="/ChunkMessage.java" changelist="249ec425-cb85-42e7-82d7-839d7edfe46a" time="1374637184114" ignored="false" />
@@ -101,7 +92,25 @@
       <file leaf-file-name="Peer.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/ece454/Peer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="262" column="48" selection-start="10348" selection-end="10348" vertical-scroll-proportion="0.40243903">
+            <state line="133" column="0" selection-start="6008" selection-end="6008" vertical-scroll-proportion="0.4715447">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FileUtils.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ece454/util/FileUtils.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="31" column="25" selection-start="892" selection-end="892" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ConcurrentHashMap.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://C:/Program Files/Java/jdk1.7.0_25/src.zip!/java/util/concurrent/ConcurrentHashMap.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1174" column="0" selection-start="45415" selection-end="45415" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -140,24 +149,6 @@
         <entry file="file://$PROJECT_DIR$/src/ece454/messages/DeleteMessage.java">
           <provider selected="true" editor-type-id="text-editor">
             <state line="11" column="35" selection-start="322" selection-end="322" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Message.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/messages/Message.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="5" selection-start="721" selection-end="721" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="NodeListMessage.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="27" selection-start="226" selection-end="226" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -212,7 +203,6 @@
         <option value="$PROJECT_DIR$/src/ece454/SocketAcceptor.java" />
         <option value="$PROJECT_DIR$/src/ece454/NodeAddressServer.java" />
         <option value="$PROJECT_DIR$/src/ece454/MessageSender.java" />
-        <option value="$PROJECT_DIR$/Makefile" />
         <option value="$PROJECT_DIR$/src/ece454/PeersList.java" />
         <option value="$PROJECT_DIR$/src/ece454/messages/Message.java" />
         <option value="$PROJECT_DIR$/src/ece454/messages/NodeListMessage.java" />
@@ -223,6 +213,7 @@
         <option value="$PROJECT_DIR$/src/ece454/util/Config.java" />
         <option value="$PROJECT_DIR$/src/ece454/ece454.java" />
         <option value="$PROJECT_DIR$/src/ece454/storage/DistributedFile.java" />
+        <option value="$PROJECT_DIR$/Makefile" />
         <option value="$PROJECT_DIR$/src/ece454/Peer.java" />
       </list>
     </option>
@@ -701,30 +692,9 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$PROJECT_DIR$/lib/commons-vfs2-2.0.jar!/org/apache/commons/vfs2/provider/AbstractFileObject.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="73" column="24" selection-start="3805" selection-end="3805" vertical-scroll-proportion="-4.24">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ece454/util/FileUtils.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="35" column="0" selection-start="1101" selection-end="1101" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/commons-vfs2-2.0.jar!/org/apache/commons/vfs2/FileChangeEvent.class">
       <provider selected="true" editor-type-id="text-editor">
         <state line="11" column="46" selection-start="383" selection-end="383" vertical-scroll-proportion="-6.8">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Makefile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="12" selection-start="160" selection-end="160" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -808,9 +778,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="35" selection-start="352" selection-end="352" vertical-scroll-proportion="0.85328186">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.7.0_25/src.zip!/java/util/concurrent/ConcurrentHashMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1174" column="0" selection-start="45415" selection-end="45415" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ece454/util/FileUtils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="31" column="25" selection-start="892" selection-end="892" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/ece454/Peer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="262" column="48" selection-start="10348" selection-end="10348" vertical-scroll-proportion="0.40243903">
+        <state line="133" column="0" selection-start="6008" selection-end="6008" vertical-scroll-proportion="0.4715447">
           <folding />
         </state>
       </provider>
