@@ -32,7 +32,7 @@ public class PeerDefinition implements Serializable {
     public static PeerDefinition fromString(String peerDefinitionString, int id) throws MalformedPeerDefinitionException {
         String[] splitLine = peerDefinitionString.split(" ");
 
-        if(splitLine.length != 2)
+        if (splitLine.length != 2)
             throw new MalformedPeerDefinitionException();
 
         String ipAddress = splitLine[0];
@@ -41,5 +41,6 @@ public class PeerDefinition implements Serializable {
         return new PeerDefinition(ipAddress, port, id);
     }
 
-    public static class MalformedPeerDefinitionException extends Exception {}
+    public static class MalformedPeerDefinitionException extends Exception {
+    }
 }

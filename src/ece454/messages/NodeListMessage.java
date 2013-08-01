@@ -25,7 +25,7 @@ public class NodeListMessage extends Message {
     }
 
     public static void broadcast(int senderPort, PeerDefinition[] nodeList, MessageSender sender, int senderId) {
-	for(PeerDefinition pd : PeersList.getPeers()) {
+        for (PeerDefinition pd : PeersList.getPeers()) {
             sender.sendMessage(new NodeListMessage(pd, senderId, senderPort, nodeList));
         }
     }

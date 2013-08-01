@@ -1,7 +1,7 @@
 package ece454.messages;
 
-import ece454.PeerDefinition;
 import ece454.MessageSender;
+import ece454.PeerDefinition;
 import ece454.PeersList;
 
 import java.io.Serializable;
@@ -10,7 +10,8 @@ public class Message implements Serializable {
     protected PeerDefinition recipient;
     protected int senderId;
 
-    protected Message() { }
+    protected Message() {
+    }
 
     public Message(PeerDefinition recipient, int senderId) {
         this.recipient = recipient;
@@ -30,7 +31,7 @@ public class Message implements Serializable {
     }
 
     public static void broadcast(MessageSender sender, int senderId) {
-        for(PeerDefinition pd : PeersList.getPeers()) {
+        for (PeerDefinition pd : PeersList.getPeers()) {
             sender.sendMessage(new Message(pd, senderId));
         }
     }

@@ -9,8 +9,9 @@ import ece454.util.SocketUtils;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.impl.DefaultFileMonitor;
 
-import java.io.*;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -30,69 +31,64 @@ public class Peer {
                 synchronized (this.socket) {
                     PeerDefinition sender = null;
 
-                    while(SocketUtils.isSocketOpen(this.socket)) {
+                    while (SocketUtils.isSocketOpen(this.socket)) {
                         try {
                             Object obj = messageInputStream.readObject();
 
-                            if(sender == null) {
-                                sender = PeersList.getPeerById(((Message)obj).getSenderId());
-                                if(sender == null) {
+                            if (sender == null) {
+                                sender = PeersList.getPeerById(((Message) obj).getSenderId());
+                                if (sender == null) {
                                     System.err.println("Opened socket connection with unknown host. Closing connection...");
                                     return;
                                 }
                             }
 
-                            if(obj instanceof ChunkMessage) {
+                            if (obj instanceof ChunkMessage) {
                                 System.out.println("Received chunk from " + sender.getFullAddress());
-                                ChunkMessage msg = (ChunkMessage)obj;
+                                ChunkMessage msg = (ChunkMessage) obj;
                                 Chunk chunk = msg.getChunk();
 
                                 // Read the chunk. Now find (or create) the appropriate file and write the chunk
                                 DistributedFile distFile = getFileForChunk(chunk);
 
-                                if(distFile == null) {
+                                if (distFile == null) {
                                     // No file for this chunk
                                     distFile = new DistributedFile(chunk.getMetadata());
                                     files.put(distFile.getFileName(), distFile);
                                     distFile.addChunk(chunk);
                                 } else {
-                                    if(distFile.isComplete()) {
+                                    if (distFile.isComplete()) {
                                         // Ignore this chunk
                                         System.out.println("Ignoring chunk...");
                                     } else {
-                                        if(!distFile.hasChunk(chunk.getId())) {
+                                        if (!distFile.hasChunk(chunk.getId())) {
                                             distFile.addChunk(chunk);
                                         }
                                     }
                                 }
-                            }
-                            else if(obj instanceof PullMessage) {
+                            } else if (obj instanceof PullMessage) {
                                 // Push all chunks to sender
                                 System.out.println("Received pull request from " + sender.getFullAddress());
                                 sendAllChunksToPeer(sender);
-                            }
-                            else if(obj instanceof QueryMessage) {
+                            } else if (obj instanceof QueryMessage) {
                                 // got query message, build PeerFileListInfo Message to send back
                                 System.out.println("Received query message from " + sender.getFullAddress());
                                 PeerFileListInfo fListInfo = new PeerFileListInfo(getDistributedFileList());
 
                                 //messageSender.sendMessage(new FileListInfoMessage(sender, fListInfo, id));
-                            }
-                            else if(obj instanceof NodeListMessage) {
-                                NodeListMessage msg = (NodeListMessage)obj;
+                            } else if (obj instanceof NodeListMessage) {
+                                NodeListMessage msg = (NodeListMessage) obj;
                                 PeersList.initialize(msg.getNodeList());
-				messageSender.initPeerSockets();
+                                messageSender.initPeerSockets();
 
                                 synchronize();
-                            }
-                            else if(obj instanceof DeleteMessage) {
-                                DeleteMessage msg = (DeleteMessage)obj;
+                            } else if (obj instanceof DeleteMessage) {
+                                DeleteMessage msg = (DeleteMessage) obj;
 
                                 remove(msg.getFilePath());
 
                                 synchronize();
-                            }
-                            else {
+                            } else {
                                 System.err.println("Received message of unknown type");
                             }
                         } catch (ClassNotFoundException e) {
@@ -127,8 +123,8 @@ public class Peer {
 
         @Override
         public void fileCreated(FileChangeEvent fileChangeEvent) throws Exception {
-            if(isNewFile(fileChangeEvent.getFile())) {
-		System.out.println("Found new file at: " + fileChangeEvent.getFile().getURL().getPath());
+            if (isNewFile(fileChangeEvent.getFile())) {
+                System.out.println("Found new file at: " + fileChangeEvent.getFile().getURL().getPath());
 
                 String fileName = fileChangeEvent.getFile().getURL().getPath();
                 File file = new File(fileName);
@@ -137,14 +133,14 @@ public class Peer {
                 insert(fileName);
 
                 // Send the chunks to all connected peers
-                for(Chunk c : files.get(newPath).getChunks())
+                for (Chunk c : files.get(newPath).getChunks())
                     ChunkMessage.broadcast(c, messageSender, id);
             }
         }
 
         @Override
         public void fileDeleted(FileChangeEvent fileChangeEvent) throws Exception {
-	    System.out.println("Detected file deletion at: " + fileChangeEvent.getFile().getURL().getPath());
+            System.out.println("Detected file deletion at: " + fileChangeEvent.getFile().getURL().getPath());
 
             String fileName = fileChangeEvent.getFile().getURL().getPath();
             File file = new File(fileName);
@@ -156,9 +152,9 @@ public class Peer {
 
         @Override
         public void fileChanged(FileChangeEvent fileChangeEvent) throws Exception {
-	    System.out.println("Detected file modification at: " + fileChangeEvent.getFile().getURL().getPath());
+            System.out.println("Detected file modification at: " + fileChangeEvent.getFile().getURL().getPath());
 
-            if(!isNewFile(fileChangeEvent.getFile())) {
+            if (!isNewFile(fileChangeEvent.getFile())) {
                 String filePath = fileChangeEvent.getFile().getURL().getPath();
                 remove(filePath);
                 insert(filePath);
@@ -170,12 +166,12 @@ public class Peer {
 
             try {
                 f = new File(fileObject.getURL().getPath());
+
+                return !files.containsKey(FileUtils.getRelativePath(f, Config.FILES_DIRECTORY));
             } catch (FileSystemException e) {
                 e.printStackTrace();
                 return true;
             }
-
-            return !files.containsKey(FileUtils.getRelativePath(f, Config.FILES_DIRECTORY));
         }
     }
 
@@ -183,24 +179,19 @@ public class Peer {
     private final int id;
     private ServerSocket serverSocket;
     private Thread socketAcceptorThread;
-    private boolean closing = false;
     private Map<String, DistributedFile> files;
     private MessageSender messageSender;
-    private Map<PeerDefinition, PeerFileListInfo> peerFileLists;
-    private Hashtable<String, int[]> globalFileList;
-    
+
     public Peer(int id, int port) {
         this.id = id;
         this.port = port;
         this.files = new ConcurrentHashMap<String, DistributedFile>();
-        this.peerFileLists = new ConcurrentHashMap<PeerDefinition, PeerFileListInfo>();
-        this.globalFileList = new Hashtable<String,int[]>();
 
         //Create directory in which to store files
-	
-        if(!Config.FILES_DIRECTORY.exists() && !Config.FILES_DIRECTORY.mkdirs()) {
-	    System.out.println("Unable to create file directory");
-	}
+
+        if (!Config.FILES_DIRECTORY.exists() && !Config.FILES_DIRECTORY.mkdirs()) {
+            System.out.println("Unable to create file directory");
+        }
 
         try {
             scanFiles();
@@ -211,34 +202,34 @@ public class Peer {
     }
 
     private void broadcastFiles() {
-        for(DistributedFile f : files.values()) {
-            for(Chunk c : f.getChunks()) {
+        for (DistributedFile f : files.values()) {
+            for (Chunk c : f.getChunks()) {
                 ChunkMessage.broadcast(c, messageSender, id);
             }
         }
     }
 
     private void sendAllChunksToPeer(PeerDefinition recipient) {
-        for(DistributedFile f : files.values()) {
-            for(Chunk c : f.getChunks()) {
+        for (DistributedFile f : files.values()) {
+            for (Chunk c : f.getChunks()) {
                 messageSender.sendMessage(new ChunkMessage(c, recipient, id));
             }
         }
     }
 
-    private Collection<DistributedFile> getDistributedFileList(){
-    	return this.files.values();
+    private Collection<DistributedFile> getDistributedFileList() {
+        return this.files.values();
     }
-    
+
     private void scanFiles() throws FileNotFoundException {
         Queue<File> files = new LinkedList<File>();
         File file = Config.FILES_DIRECTORY;
 
         files.addAll(Arrays.asList(file.listFiles()));
 
-        while(!files.isEmpty()) {
+        while (!files.isEmpty()) {
             file = files.poll();
-            if(file.isDirectory()) {
+            if (file.isDirectory()) {
                 files.addAll(Arrays.asList(file.listFiles()));
             } else {
                 DistributedFile distFile = new DistributedFile(FileUtils.getRelativePath(file, Config.FILES_DIRECTORY));
@@ -248,7 +239,7 @@ public class Peer {
     }
 
     private void saveFiles() {
-        for(DistributedFile f : files.values()) {
+        for (DistributedFile f : files.values()) {
             f.save();
         }
     }
@@ -256,7 +247,7 @@ public class Peer {
     private DistributedFile getFileForChunk(Chunk chunk) {
         return files.get(chunk.getMetadata().getFileName());
     }
-    
+
     public void startServerSocket() throws IOException {
         if (serverSocket == null)
             serverSocket = new ServerSocket(port);
@@ -265,7 +256,7 @@ public class Peer {
         socketAcceptorThread.start();
     }
 
-	public void insert(String filename) {
+    public void insert(String filename) {
 
         File file = new File(filename);
 
@@ -320,8 +311,8 @@ public class Peer {
         fm.start();
     }
 
-	public void join() {
-        if(messageSender == null)
+    public void join() {
+        if (messageSender == null)
             messageSender = new MessageSender();
 
         try {
@@ -330,19 +321,18 @@ public class Peer {
             System.err.println("Could not open socket connection on port " + port + ": " + e.toString());
         }
 
-	PeersList.addPeer(NodeAddressServer.NAS_DEFINITION);
+        PeersList.addPeer(NodeAddressServer.NAS_DEFINITION);
 
         messageSender.start();
         messageSender.sendMessage(new NodeListMessage(NodeAddressServer.NAS_DEFINITION, id, port, null));
     }
 
-	public void leave() {
+    public void leave() {
         //Inform all peers of absence
         //Preferred: push out rare file chunks before leaving
         //Close all sockets
 
         messageSender.shutdown();
-        closing = true;
         try {
             serverSocket.close();
         } catch (IOException e) {

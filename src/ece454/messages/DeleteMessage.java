@@ -18,7 +18,7 @@ public class DeleteMessage extends Message {
     }
 
     public static void broadcast(String path, MessageSender sender, int senderId) {
-        for(PeerDefinition pd : PeersList.getPeers()) {
+        for (PeerDefinition pd : PeersList.getPeers()) {
             sender.sendMessage(new DeleteMessage(path, pd, senderId));
         }
     }

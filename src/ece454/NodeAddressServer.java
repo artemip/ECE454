@@ -1,6 +1,6 @@
 package ece454;
 
-import ece454.messages.*;
+import ece454.messages.NodeListMessage;
 import ece454.util.SocketUtils;
 
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NodeAddressServer {
-    public static final PeerDefinition NAS_DEFINITION = new PeerDefinition("127.0.0.1", 9000, 0);
+    public static final PeerDefinition NAS_DEFINITION = new PeerDefinition("127.0.0.1", 8000, 0);
 
     private class NASSocketHandlerThread extends SocketHandlerThread {
 
@@ -22,33 +22,41 @@ public class NodeAddressServer {
         public void run() {
             try {
                 synchronized (this.socket) {
-                    PeerDefinition sender = null;
-
-                    while(SocketUtils.isSocketOpen(this.socket)) {
+                    while (SocketUtils.isSocketOpen(this.socket)) {
                         try {
                             Object obj = messageInputStream.readObject();
 
-                            if(sender == null) {
-                                if(sender == null) {
-                                    System.err.println("Opened socket connection with unknown host. Closing connection...");
-                                    return;
+                            if (obj instanceof NodeListMessage) {
+                                NodeListMessage msg = (NodeListMessage) obj;
+                                PeerDefinition sender = null;
+
+                                if ((sender = PeersList.getPeerById(msg.getSenderId())) == null) {
+                                    // New peer
+                                    sender = new PeerDefinition(this.socket.getInetAddress().getHostAddress(), msg.getSenderPort(), msg.getSenderId());
+                                    System.out.println("Found new peer at " + sender.getFullAddress());
+
+                                    // Add the sender to the peers list
+                                    idToPeerMap.put(msg.getSenderId(), sender);
+                                    PeersList.addPeer(sender);
+                                    messageSender.initPeerSockets();
+
+                                    //Broadcast new list of peers to all peers
+                                    NodeListMessage.broadcast(
+                                            NAS_DEFINITION.getPort(),
+                                            idToPeerMap.values().toArray(
+                                                    new PeerDefinition[idToPeerMap.values().size()]),
+                                            messageSender,
+                                            NAS_DEFINITION.getId());
+                                } else {
+                                    // Respond with the complete peers list
+                                    messageSender.sendMessage(
+                                            new NodeListMessage(
+                                                    sender,
+                                                    NAS_DEFINITION.getId(),
+                                                    NAS_DEFINITION.getPort(),
+                                                    idToPeerMap.values().toArray(
+                                                            new PeerDefinition[idToPeerMap.values().size()])));
                                 }
-                            }
-
-                            if(obj instanceof NodeListMessage) {
-                                System.out.println("Received node list request from " + sender.getFullAddress());
-                                NodeListMessage msg = (NodeListMessage)obj;
-
-                                PeerDefinition newPeer = new PeerDefinition(this.socket.getInetAddress().getHostAddress(), msg.getSenderPort(), msg.getSenderId());
-
-                                System.out.println("Found new peer at " + newPeer.getFullAddress());
-
-                                // Add the sender to the peers list
-                                idToPeerMap.put(msg.getSenderId(), newPeer);
-				PeersList.addPeer(newPeer);
-
-                                // Respond with the complete peers list
-				NodeListMessage.broadcast(NAS_DEFINITION.getPort(), (PeerDefinition[])idToPeerMap.values().toArray(), messageSender, 0);
                             } else {
                                 System.err.println("Received message of unknown type");
                             }
@@ -101,7 +109,7 @@ public class NodeAddressServer {
     }
 
     public void join() {
-        if(messageSender == null)
+        if (messageSender == null)
             messageSender = new MessageSender();
 
         try {

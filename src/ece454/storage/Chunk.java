@@ -34,7 +34,7 @@ public class Chunk implements Serializable, Comparable {
     @Override
     public int compareTo(Object anotherChunk) {
         Integer thisId = new Integer(this.getId());
-        Integer otherId = new Integer(((Chunk)anotherChunk).getId());
+        Integer otherId = new Integer(((Chunk) anotherChunk).getId());
         return thisId.compareTo(otherId);
     }
 }

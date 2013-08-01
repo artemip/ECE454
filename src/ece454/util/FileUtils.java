@@ -1,7 +1,5 @@
 package ece454.util;
 
-import ece454.ece454;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,7 +8,7 @@ import java.nio.channels.FileChannel;
 
 public class FileUtils {
     public static void copyFile(File sourceFile, File destFile) throws IOException {
-        if(!destFile.exists()) {
+        if (!destFile.exists()) {
             destFile.createNewFile();
         }
 
@@ -21,12 +19,11 @@ public class FileUtils {
             source = new FileInputStream(sourceFile).getChannel();
             destination = new FileOutputStream(destFile).getChannel();
             destination.transferFrom(source, 0, source.size());
-        }
-        finally {
-            if(source != null) {
+        } finally {
+            if (source != null) {
                 source.close();
             }
-            if(destination != null) {
+            if (destination != null) {
                 destination.close();
             }
         }

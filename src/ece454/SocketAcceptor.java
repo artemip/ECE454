@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class SocketAcceptor implements Runnable {
     private boolean isClosing = false;
@@ -26,7 +26,7 @@ public class SocketAcceptor implements Runnable {
         Socket connectedSocket;
 
         try {
-            while(isClosing) {
+            while (!isClosing) {
                 connectedSocket = serverSocket.accept();
                 serverHandlerWorkerPool.execute(socketHandlerThreadFactory.createThread(connectedSocket));
             }

@@ -1,9 +1,5 @@
 package ece454;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +7,9 @@ public class PeersList {
     private static List<PeerDefinition> peers = new ArrayList<PeerDefinition>();
 
     public static void initialize(PeerDefinition[] peersList) {
-	peers = new ArrayList<PeerDefinition>();
+        peers = new ArrayList<PeerDefinition>();
 
-        for(PeerDefinition p : peersList) {
+        for (PeerDefinition p : peersList) {
             peers.add(p);
         }
     }
@@ -23,8 +19,8 @@ public class PeersList {
     }
 
     public static PeerDefinition getPeerById(int peerId) {
-        for(PeerDefinition pd : peers) {
-            if(pd.getId() == peerId)
+        for (PeerDefinition pd : peers) {
+            if (pd.getId() == peerId)
                 return pd;
         }
 

@@ -8,7 +8,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MessageSender extends Thread {
     private class SocketMessagingThread extends Thread {
@@ -24,28 +26,28 @@ public class MessageSender extends Thread {
             this.recipient = recipient;
             this.messageQueue = new LinkedBlockingQueue<Message>();
 
-            if(SocketUtils.isSocketOpen(this.socket))
+            if (SocketUtils.isSocketOpen(this.socket))
                 getOutputStreamFromSocket();
         }
 
         @Override
         public void run() {
             try {
-                while(!finished) {
+                while (!finished) {
                     Message msg = null;
                     synchronized (this) {
-                        while((msg = messageQueue.poll()) == null) {
+                        while ((msg = messageQueue.poll()) == null) {
                             this.wait();
                         }
                     }
 
                     // Attempt to connect to and send a socket a message
                     try {
-                        if(!SocketUtils.isSocketOpen(this.socket)) {
+                        if (!SocketUtils.isSocketOpen(this.socket)) {
                             resetSocket(recipient); //Re-connect
                         }
 
-                        if(SocketUtils.isSocketOpen(this.socket))
+                        if (SocketUtils.isSocketOpen(this.socket))
                             messageOutputStream.writeObject(msg);
                     } catch (IOException e) {
                         System.err.println("Could not send message to host " + recipient.getFullAddress() + ": " + e);
@@ -109,39 +111,41 @@ public class MessageSender extends Thread {
 
     @Override
     public void start() {
-	initPeerSockets();
+        initPeerSockets();
         super.start();
     }
 
     public void initPeerSockets() {
-	for(PeerDefinition pd : PeersList.getPeers()) {
-	    addPeerSocket(pd);
+        peerSocketsMap.clear();
+
+        for (PeerDefinition pd : PeersList.getPeers()) {
+            addPeerSocket(pd);
         }
     }
 
     public void addPeerSocket(PeerDefinition pd) {
-	Socket s = null;
-	try {
-	    s = new Socket(pd.getIPAddress(), pd.getPort());
-	} catch (IOException e) {
-	    System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
-	}
-	
-	SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
-	peerSocketsMap.put(pd, msgThread);
-	msgThread.start();
+        Socket s = null;
+        try {
+            s = new Socket(pd.getIPAddress(), pd.getPort());
+        } catch (IOException e) {
+            System.err.println("Host at " + pd.getFullAddress() + " has not been started. Cannot establish socket connection.");
+        }
+
+        SocketMessagingThread msgThread = new SocketMessagingThread(s, pd);
+        peerSocketsMap.put(pd, msgThread);
+        msgThread.start();
     }
 
     @Override
     public void run() {
         Message msg;
         try {
-            while(!stopSending) {
+            while (!stopSending) {
                 //Process work queue
 
                 synchronized (this) {
                     // While nothing to process, wait
-                    while((msg = messagesToSend.poll()) == null) {
+                    while ((msg = messagesToSend.poll()) == null) {
                         wait();
                     }
                 }
@@ -167,7 +171,7 @@ public class MessageSender extends Thread {
         wakeup();
         this.interrupt();
 
-        for(SocketMessagingThread t : this.peerSocketsMap.values()) {
+        for (SocketMessagingThread t : this.peerSocketsMap.values()) {
             t.shutdown();
         }
     }

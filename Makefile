@@ -2,12 +2,13 @@ JCC = javac
 JCCFLAGS = -J-Xms4096m -J-Xmx4096m -g
 JFLAGS = -Xmx4096m -cp src/
 SRCDIR=src/ece454
-RUNARGS=0 8000 peers.txt
+RUNARGS=0 8000
+LIBS=lib/*
 
 .SUFFIXES: .java .class
 
 .java.class:
-	$(JCC) $(JCCFLAGS) -classpath lib/commons-vfs2-2.0.jar -sourcepath $(SRCDIR) $(SRCDIR)/*.java $(SRCDIR)/*/*.java
+	$(JCC) $(JCCFLAGS) -classpath $(LIBS) -sourcepath $(SRCDIR) $(SRCDIR)/*.java $(SRCDIR)/*/*.java
 
 CLASSES = \
 	$(SRCDIR)/PeerDefinition.java \
@@ -39,7 +40,7 @@ default: classes
 classes: $(CLASSES:.java=.class)
 
 run:
-	java $(JFLAGS) -classpath lib/commons-vfs2-2.0.jar ece454/ece454 ${RUNARGS}
+	java $(JFLAGS) -classpath src/:$(LIBS) ece454/ece454 ${RUNARGS}
 
 clean:
 	$(RM) $(SRCDIR)/*.class
