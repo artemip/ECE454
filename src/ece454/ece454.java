@@ -2,7 +2,10 @@ package ece454;
 
 import ece454.util.Config;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class ece454 {
     public static void main(String[] args) {
@@ -21,6 +24,28 @@ public class ece454 {
             Peer peer = new Peer(peerId, port);
             peer.join();
             peer.watchDirectory();
+            
+            boolean leave = false;
+            String userInput = "";
+            
+            while (!leave){
+    	        System.out.println("Leave? (y/n)");
+
+    	    	try{
+    	    	    BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+    	    	    userInput = bufferRead.readLine();
+    	    	}
+    	    	catch(IOException e){
+    	    		e.printStackTrace();
+    	    	}
+    	    	
+    	    	if (userInput.equals("y")){
+    	    		System.out.println("Peer " + peer.getId() + " is leaving ...");
+    	    		leave = true;
+    	    		peer.leave();
+    	    	}
+            }
+            
         }
     }
 }
